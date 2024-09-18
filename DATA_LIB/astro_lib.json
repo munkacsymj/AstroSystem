@@ -1,0 +1,107 @@
+{
+    "session" : [
+	{
+	    "date" : "5-17-2022",
+	    "seq" : 1,
+	    "logfile" : "session.log",
+	    "stdout" : "session.shell",
+	    "type" : "simple_session",
+	    "first_image" : "image001.fits",
+	    "last_image" : "image228.fits"
+	},
+	{
+	    "date" : "5-17-2022",
+	    "seq" : 2,
+	    "logfile" : "session2.log",
+	    "stdout" : "session2.shell",
+	    "type" : "pluto",
+	    "first_image" : "image229.fits",
+	    "last_image" : "image571.fits"
+	}
+    ]
+    "exposures" : [
+	{
+	    "filename" : "image000.fits",
+	    "dark" : "dark60.fits",
+	    "flat" : "flat_Vc.fits",
+	    "reject" : false,
+	    "session_seq" : 1
+	}
+    ]
+    "stacks" : [
+	"t-ser_V.fits" : [
+	    "image100.fits",
+	    "image101.fits",
+	    "image102.fits"
+	]
+	"t-ser_R.fits" : [
+	    "image103.fits",
+	    "image104.fits",
+	    "image105.fits"
+	]
+    ]
+    "inst_mags" : [
+	{
+	    "exposure" : 2000000,
+	    "JUID" : X00000001,
+	    "measurements" : [
+		{
+		    "name" : "GSC01452-12345",
+		    "inst_mag" : 21.4232,
+		    "SNR" : 56.5
+		},
+		{
+		    "name" : "GSC01452-12346",
+		    "inst_mag" : 22.5491,
+		    "SNR" : 56.5
+		}
+		]
+	]
+    }
+    "analyses" : [
+	{
+	    "ANALYID" : 102,
+	    "source" : [
+		"image100.fits",
+		"image101.fits",
+		"image102.fits"
+	    ]
+	    "field" : "t-ser",
+	    "filter" : "V",
+	    "analy_type" : "multi-image-set",
+	    "comp" : "GSC01452-09998"
+	    "crefmag" : 9.849,
+	    "checks" : [
+		"GSC01452-09997",
+		"GSC01452-09996"
+	    ]
+	    "check_rms" : 0.016,
+	    "chartid" : "X25225WV",
+	}
+    ]
+    "bvri_sets" : [
+	{
+	    "BVRI_ID" : 10200,
+	    "source" : [
+		102,
+		103,
+		104,
+		105
+	    }
+	}
+    
+    "analy_mags" : [
+	{
+	    "name" : "GSC01452-12345",
+	    "mag" : 14.327,
+	    "uncertainty" : 0.013,
+	    "unc_source" : "rms_scatter",
+	    "transformed" : 1,
+	    "ANALYID" : 102,
+	    "filter" : "V",
+	    "b-v" : 1.529,
+	    "Tv_bv" : 0.036,
+	    
+	    
+	
+}
