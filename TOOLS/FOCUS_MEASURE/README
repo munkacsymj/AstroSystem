@@ -1,0 +1,9 @@
+AddImageToFocus()
+    -> focus_analyze()
+	-> analyze_sequence()
+	-> compute_memberships()
+	-> fuzzy_assess_focus()
+	    -> AssessPriorAdjustment()
+	    -> make_adjustment()			XXX
+	        -> MoveFocuser(direction, size, current_focus, current_slope);
+		    -> MoveFocus(signed_move_size); // scope_api.h
