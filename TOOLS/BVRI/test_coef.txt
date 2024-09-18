@@ -1,0 +1,44 @@
+[Setup]
+description= TG - Version 5.10, Telescope= Meade 10", Vanderbilt, Time created (UT) = 2016_07_25_00:09:44
+[Coefficients]
+Tbv= 1.1974
+Tb_bv= 0.1181
+Tv_bv= -0.0467
+Tvr= 1.068
+Tv_vr= 0.009
+Tr_vr= -0.041
+Tri= 0.959
+Tr_ri= -0.040
+Ti_ri= -0.013
+Tvi= 1.012
+Tv_vi= 0.005
+Ti_vi= -0.006
+Tr_vi= -0.021
+[Error]
+Tbv= 0.027
+Tb_bv= 0.015
+Tv_bv= 0.007
+Tvr= 0.017
+Tv_vr= 0.011
+Tr_vr= 0.010
+Tri= 0.014
+Tr_ri= 0.011
+Ti_ri= 0.013
+Tvi= 0.011
+Tv_vi= 0.006
+Ti_vi= 0.005
+Tr_vi= 0.005
+[R Squared Values]
+Tbv= 0.983
+Tb_bv= 0.271
+Tv_bv= 0.031
+Tvr= 0.988
+Tv_vr= 0.017
+Tr_vr= 0.297
+Tri= 0.990
+Tr_ri= 0.252
+Ti_ri= 0.020
+Tvi= 0.994
+Tv_vi= 0.017
+Ti_vi= 0.026
+Tr_vi= 0.277
