@@ -1,0 +1,48 @@
+#!/bin/ksh
+# add_archive -- adds observations to the observation archive
+#
+#
+#  Copyright (C) 2007 Mark J. Munkacsy
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program (file: COPYING).  If not, see
+#   <http://www.gnu.org/licenses/>. 
+#
+#
+# invoke as add_archive -f file.phot -t 245xxxx.x
+#
+if [[ $# -lt "4" ]]
+   then echo usage add_archive -f dir/file.phot -t 245xxxx.x
+   exit
+fi
+for count in 1 2
+do
+    if [ $1 == "-f" ]
+    then FILE=$2
+         shift 2
+    elif [ $1 == "-t" ]
+    then OBS_TIME=$2
+         shift 2
+    else echo Argument $1 not recognized
+         exit
+    fi
+done
+FILE_BASE=`dirname $FILE`
+if [ $FILE_BASE == "." ]
+   then echo add_archive: filename must include directory name
+   exit
+fi
+LAST_DIR=`basename $FILE_BASE`
+SDIR=/usr/m2m/ASTRO/TOOLS/ARCHIVE
+SOURCE_FILE=$LAST_DIR/`basename $FILE`
+awk -f $SDIR/add_archive.awk -v TIME=$OBS_TIME -v SOURCE_FILE=$SOURCE_FILE $FILE >> /home/ASTRO/ARCHIVE/archive.dat

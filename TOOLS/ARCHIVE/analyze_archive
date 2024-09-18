@@ -1,0 +1,3 @@
+fgrep MV= < /usr/local/ASTRO/ARCHIVE/archive.dat | sort > /tmp/archive.tmp
+awk -f /usr/m2m/ASTRO/TOOLS/ARCHIVE/analyze_archive.awk /tmp/archive.tmp > /tmp/archive.out
+echo Results put into /tmp/archive.out
