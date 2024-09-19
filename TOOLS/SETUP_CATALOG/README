@@ -1,0 +1,11 @@
+Procedure to follow to add a star
+
+------------- OLD WAY -----------------
+./setup_new_catalog -n bb-cas -w
+./setup_new_catalog -n bb-cas
+CAT=/usr/m2m/ASTRO/CATALOGS/ ; export CAT
+mv $CAT/bb-cas $CAT/bb-cas.norm
+./merge_catalogs -o $CAT/bb-cas -c $CAT/bb-cas.norm -w $CAT/bb-cas.wide
+
+------------ NEW WAY ---------------
+setup_catalog -n starname

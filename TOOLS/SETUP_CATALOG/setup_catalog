@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+# usage: setup_catalog [-o output_simple_name] -n star [-r radius] | dd:mm.m hh:mm:ss
+#
+OUTFILE=""
+STARNAME=""
+NAMEARG=""
+RADIUSARG=""
+if [ ${1:-null} == "-n" ]
+then STARNAME=$2
+NAMEARG="-n "$STARNAME
+shift 2
+fi
+if [ ${1:-null} == "-o" ]
+then OUTFILE=$2
+shift 2
+fi
+if [ ${1:-null} == "-n" ]
+then STARNAME=$2
+NAMEARG="-n "$STARNAME
+shift 2
+fi
+if [ ${1:-null} == "-o" ]
+then OUTFILE=$2
+shift 2
+fi
+if [ X$OUTFILE == X ]
+then OUTFILE=$STARNAME
+fi
+alias setup=$BIN_DIR/setup_new_catalog
+echo invoking as -w $NAMEARG $*
+echo OUTFILE = $OUTFILE
+if $BIN_DIR/setup_new_catalog -w $NAMEARG $* && $BIN_DIR/setup_new_catalog $NAMEARG $*
+then
+    CAT=/home/ASTRO/CATALOGS/ ; export CAT
+    mv $CAT/$OUTFILE $CAT/$OUTFILE.norm
+    $BIN_DIR/merge_catalogs -o $CAT/$OUTFILE -c $CAT/$OUTFILE.norm -w $CAT/$OUTFILE.wide
+fi
