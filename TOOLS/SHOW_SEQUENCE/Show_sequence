@@ -1,0 +1,10 @@
+*manager.labelString:	Hello
+*manager.orientation:	HORIZONTAL
+*RightSide.orientation:	VERTICAL
+*LeftSide.orientation:	VERTICAL
+*RefreshButton.labelString: Refresh
+*CircleButton.fillOnSelect: True
+*CircleButton.indicatorType: N_OF_MANY
+*CircleButton.selectColor:   red
+*CircleButton.labelString:   Circle Stars
+*CoolerMgr.orientation:      HORIZONTAL
