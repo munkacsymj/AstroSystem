@@ -1,0 +1,136 @@
+*manager.labelString:		Hello
+*manager.orientation:		HORIZONTAL
+*FileArea.orientation:		HORIZONTAL
+*FileArea.numColumns:		4
+*FileArea.packing:		PACK_TIGHT
+*FileSelectionDialog.directory:	/usr/tmp/IMAGES
+*FileSelectionDialog.pattern:	*.fits
+*FileSelectionDialog.textString: Open File
+*FileSelectionDialog.autoUnmanage: True
+*ImageNameArea.orientation:	HORIZONTAL
+*ImageNameArea.packing:		PACK_TIGHT
+*DarkNameArea.orientation:	HORIZONTAL
+*DarkNameArea.packing:		PACK_TIGHT
+*FlatNameArea.orientation:	HORIZONTAL
+*FlatNameArea.packing:		PACK_TIGHT
+*ImageFileNameTag.labelString:	Image
+*ImageFileNameTag.recomputeSize: False
+*ImageFileNameTag.width:	45
+*DarkFileNameTag.labelString:	Dark
+*DarkFileNameTag.recomputeSize: False
+*DarkFileNameTag.width:		45
+*FlatFileNameTag.labelString:	Flat
+*FlatFileNameTag.recomputeSize: False
+*FlatFileNameTag.width:		45
+*FileNameLabel.editable:	False
+*FileNameLabel.cursorPositionVisible: False
+*FileNameLabel.columns:		44
+*DarkNameLabel.editable:	False
+*DarkNameLabel.cursorPositionVisible: False
+*DarkNameLabel.columns:		44
+*FlatNameLabel.editable:	False
+*FlatNameLabel.cursorPositionVisible: False
+*FlatNameLabel.columns:		44
+*DarkOnOffButton.labelString:	Subtract Dark
+*DarkOnOffButton.selectColor:	red
+*DarkOnOffButton.indicatorType:	N_OF_MANY
+*DarkOnOffButton.fillOnSelect:	True
+*DarkOnOffButton.width:		70
+*FlatOnOffButton.labelString:	scale by Flat
+*FlatOnOffButton.selectColor:	red
+*FlatOnOffButton.indicatorType:	N_OF_MANY
+*FlatOnOffButton.fillOnSelect:	True
+*FlatOnOffButton.width:		70
+*AutoImageButton.labelString:	Auto Monitor
+*AutoImageButton.selectColor:	red
+*AutoImageButton.indicatorType: N_OF_MANY
+*AutoImageButton.fillOnSelect:  True
+*AutoImageButton.set:		Set
+*AutoImageButton.width:		70
+*ImageSpecifyButton.labelString: Open Image
+*DarkSpecifyButton.labelString:	Open Darkfile
+*FlatSpecifyButton.labelString: Open Flatfile
+*RightSide.orientation:		VERTICAL
+*LeftSide.orientation:		VERTICAL
+*TopButtons.orientation:	HORIZONTAL
+*RefreshButton.labelString:	Refresh!
+*PrintButton.labelString:	Print
+*CircleButton.fillOnSelect:	True
+*CircleButton.indicatorType:	N_OF_MANY
+*CircleButton.selectColor:	red
+*CircleButton.labelString:	Circle Stars
+*ReverseButton.fillOnSelect:	True
+*ReverseButton.indicatorType:	N_OF_MANY
+*ReverseButton.selectColor:	red
+*ReverseButton.labelString:	Reverse Video
+*GridButton.fillOnSelect:	True
+*GridButton.indicatorType:	N_OF_MANY
+*GridButton.selectColor:	red
+*GridButton.labelString:	Show Grid
+*Sliders.orientation:		HORIZONTAL
+*Sliders.packing:		PACK_COLUMN
+*BlackSlider.maximum:		65535
+*BlackSlider.minimum:		0
+*BlackSlider.orientation:	HORIZONTAL
+*BlackSlider.showValue:		True
+*BlackSlider.titleString:	Black
+*WhiteSlider.maximum:		65535
+*WhiteSlider.minimum:		0
+*WhiteSlider.orientation:	HORIZONTAL
+*WhiteSlider.showValue:		True
+*WhiteSlider.titleString:	White
+*AutoScaleButton.labelString:	Auto Scale Brightness
+*AutoScaleButton.selectColor:	red
+*AutoScaleButton.fillOnSelect:	True
+*AutoScaleButton.set:		Set
+*ImageArea.width:		512
+*ImageArea.height:		512
+*DecMgr.orientation:		HORIZONTAL
+*DecStatic.labelString:		Dec:
+*DecLabel.cursorPositionVisible: False
+*DecLabel.editable:		False
+*RAMgr.orientation:		HORIZONTAL
+*RAStatic.labelString:		RA:
+*RALabel.cursorPositionVisible: False
+*RALabel.editable:		False
+*ExposureMgr.orientation:	HORIZONTAL
+*ExposureStatic.labelString:	Exposure Time:
+*ExposureLabel.cursorPositionVisible: False
+*ExposureLabel.editable:	False
+*TimeMgr.orientation:		HORIZONTAL
+*TimeStatic.labelString:	UTC:
+*TimeLabel.columns:		22
+*TimeLabel.cursorPositionVisible: False
+*TimeLabel.editable:		False
+*CoolerMgr.orientation:		HORIZONTAL
+*CoolerMgr.packing:		PACK_COLUMN
+*CoolerMgr.numColumns:		2
+*AmbientTemp.columns:           16
+*AmbientTemp.cursorPositionVisible: False
+*AmbientTemp.editable:          False
+*CCDTemp.columns:               16
+*CCDTemp.cursorPositionVisible: False
+*CCDTemp.editable:              False
+*CoolerPower.columns:           16
+*CoolerPower.cursorPositionVisible: False
+*CoolerPower.editable:          False
+*CoolerSetpoint.columns:        16
+*CoolerSetpoint.cursorPositionVisible: False
+*CoolerSetpoint.editable:       False
+*Magnifier.width:		200
+*Magnifier.height:		200
+*PhotometryMgr.orientation:	HORIZONTAL
+*PhotometryStatic.labelString:	Counts
+*PhotometryLabel.cursorPositionVisible: False
+*PhotometryLabel.editable:	False
+*PhotometryLabel.columns:       16
+*PhotometryButton.fillOnSelect:	True
+*PhotometryButton.indicatorType:	N_OF_MANY
+*PhotometryButton.selectColor:	red
+*PhotometryButton.labelString:	Photometry Circle
+*FlipMgr.orientation:		HORIZONTAL
+*FlipLabel.labelString:		Image Orientation
+*Flipper.cursorPositionVisible: False
+*Flipper.editable:		False
+*FlipImageButton.selectColor:   green
+*FlipImageButton.fillOnSelect:  True
