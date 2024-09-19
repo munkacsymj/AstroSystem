@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# invoke as full_script -o phot_out -n star -s flatfile -d darkfile image_files
+#
+#echo '$1' is ${1%-?}
+if [[ $# -lt "9" ]]
+then echo usage full_script -o phot_out -n star -s flatfile -d darkfile image_files
+     exit
+fi
+for count in 1 2 3 4 5
+do
+    #printf "$1 is %s\n" "$1"
+    if [ $1 == "-d" ]
+    then DARK=$2
+         shift 2
+    elif [ $1 == "-f" ]
+    then FILTER=$2
+	 shift 2
+    elif [ $1 == "-o" ]
+    then OUTFILE=$2
+         shift 2
+    elif [ $1 == "-s" ]
+    then FLAT=$2
+         shift 2
+    elif [ $1 == "-n" ]
+    then STAR=$2
+         shift 2
+    else echo Argument $1 not recognized.
+         exit
+    fi
+done
+echo FLAT is $FLAT
+echo DARK is $DARK
+echo STAR is $STAR
+for f in $*
+do find_stars -f -d $DARK -s $FLAT -i $f
+   star_match -h -b -e -n $STAR -f -i $f
+done
+#FILTER=${FILTER:0:1} # Just the first char of filtername
+STACKNAME=${OUTFILE%?.phot}_${FILTER:0:1}.fits
+stack -e -d $DARK -s $FLAT -o $STACKNAME $*
+find_stars -i $STACKNAME
+star_match -h -e -b -n $STAR -f -i $STACKNAME
+#analyze -n $STAR -d $DARK -s $FLAT -o $OUTFILE $*
