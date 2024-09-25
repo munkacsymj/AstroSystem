@@ -28,6 +28,8 @@ double GetCurrentChipTemp(void);
 double GetCurrentCoolerPWM(void);
 
 // Pair of functions to mediate cross-thread access to the camera
+// "owner" is an integer identifying the thread that is grabbing the
+// lock. It is *not* an error to Lock multiple times from the same thread.
 void GetCameraLock(void);
 void ReleaseCameraLock(void);
 void CameraLockInit(void);
