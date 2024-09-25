@@ -224,6 +224,7 @@ private:
 
   double integrated_error {0.0};
 } regulator;
+  
 
 void *RunCooler(void *args) {
   cooler_log = fopen(COOLER_LOGFILE, "w");
