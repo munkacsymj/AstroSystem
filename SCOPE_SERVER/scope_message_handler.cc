@@ -42,12 +42,8 @@ void send_status_message(int socket_fd, int status) {
   lxStatusMessage *outbound = new lxStatusMessage(socket_fd,
 						  LX_SERVER_READY,
 						  status);
-<<<<<<< scope_message_handler.cc
-  outbound->SetFocusPosition(c14cum_focus_position());
-=======
   outbound->SetFocusPositionC14(c14cum_focus_position());
   outbound->SetFocusPositionEsatto(esattocum_focus_position());
->>>>>>> 1.9
   outbound->send();
   fprintf(stderr, "status message focus position = %ld (C14), %ld (Esatto)\n",
 	  outbound->GetFocusPositionC14(), outbound->GetFocusPositionEsatto());
@@ -75,16 +71,12 @@ void handle_focus_message(lxFocusMessage *msg, int socket_fd) {
   } else {
     fprintf(stderr, "Setting focus to position %d.\n", amount_in_msec);
   }
-<<<<<<< scope_message_handler.cc
-  c14focus(direction, amount_in_msec);
-=======
 
   if (msg->FocuserIsC14()) {
     c14focus(direction, amount_in_msec);
   } else {
     esattofocus(direction, amount_in_msec);
   }
->>>>>>> 1.9
   fprintf(stderr, "Sending Ready message.\n");
   send_status_message(socket_fd, SCOPE_IDLE);
 }
