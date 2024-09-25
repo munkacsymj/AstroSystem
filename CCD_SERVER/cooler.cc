@@ -52,17 +52,6 @@ void DoRegulation(void);
 void ControlCooler(void);
 void ResetIntegrator(void);
 
-struct RampPoint {
-  time_t ramp_t;
-  double setpoint;
-};
-
-struct CurrentState {
-  double current_working_setpoint;
-  std::list<RampPoint> current_ramp;
-  std::list<double> chip_temp_history;
-} current_state;
-
 CoolerData *GetCoolerData(void) { return &cooler_data; }
 
 //****************************************************************
@@ -203,6 +192,39 @@ void InitCooler(void) {
 
 }
 
+struct TempPoint {
+  time_t timestamp;
+  double setpoint;
+};
+
+class Regulator {
+public:
+  Regulator(void) {;}
+  ~Regulator(void) {;}
+  void Reset(void);
+  void Suspend(void) {;}
+  void Cycle(void);
+
+private:
+  double current_working_setpoint;
+  std::list<TempPoint> current_ramp;
+  std::list<TempPoint> chip_temp_history;
+  
+  double power_ratio {44.7/255.0};
+  const double gain_p {15.0};
+  const double gain_i {1.0};
+  const double gain_d {400.0};
+  const double max_allowed_slope {2.0/60.0}; // 2 deg/min
+  const double max_singlestep_setpoint_change {4.0}; // deg C
+  const int seconds_per_ramp_step {16};
+  const int slope_number_points {8};
+  bool first_time = true;
+  time_t last_time;
+  const double ambient_offset {3.0}; // deg C
+
+  double integrated_error {0.0};
+} regulator;
+
 void *RunCooler(void *args) {
   cooler_log = fopen(COOLER_LOGFILE, "w");
   cooler_data.CoolerCurrentPWM=-99;
@@ -243,12 +265,10 @@ void ControlCooler(void) {
     
   case COOLER_AUTO:
     if (prior_request != COOLER_AUTO) {
-      ResetIntegrator();
-      current_state.current_ramp.clear();
-      current_state.chip_temp_history.clear();
+      regulator.Reset();
     }
     cooler_data.CoolerCurrentMode = COOLER_REGULATING;
-    DoRegulation();
+    regulator.Cycle();
     break;
     
   case COOLER_MAN:
@@ -324,22 +344,20 @@ void RefreshCoolerStatus(void) {
 
 static double integrated_error = 0.0;
 
-void ResetIntegrator(void) { integrated_error = 0.0; }
+void Regulator::Reset(void) {
+  integrated_error = 0.0;
+  first_time = true;
+  last_time = 0;
+  current_ramp.clear();
+  chip_temp_history.clear();
+}
   
-void DoRegulation(void) {
-  const static double gain_p = 15.0;
-        static double power_ratio = 44.7/255.0;
-  const static double gain_i = 1.0;
-  const static double gain_d = 400.0;
-  const static double max_allowed_slope = 2.0/60.0; // 2 deg/min
-  const static double max_singlestep_setpoint_change = 4.0; // deg C
-        static double ambient_offset = 4.0; // deg C
-  const static int seconds_per_ramp_step = 16;
-  const static int slope_number_points = 8;
-        static bool first_time = true;
-        static time_t last_time = time(nullptr);
-  const        time_t now = time(nullptr);
+  
+void Regulator::Cycle(void) {
+  const time_t now = time(nullptr);
+  static double prior_target_temp = 99.9;
 
+  // This is currently disabled. Nothing is ever pushed onto measurements.
   if (measurements.size() > 20) {
     FittingResults fitter;
     GetFittingParams(fitter);
@@ -349,7 +367,12 @@ void DoRegulation(void) {
 	    fitter.ambient_offset, fitter.power_ratio, fitter.slope_ratio, measurements.size());
   }
 
-  bool in_ramp = current_state.current_ramp.size() > 0;
+  if (prior_target_temp != cooler_data.CoolerTempCommand) {
+    prior_target_temp = cooler_data.CoolerTempCommand;
+    current_ramp.clear();
+  }
+
+  bool in_ramp = current_ramp.size() > 0;
   const double current_err = fabs(cooler_data.CoolerTempCommand -
 				  cooler_data.CoolerCurrentChipTemp);
   const bool ramp_is_negative = (cooler_data.CoolerTempCommand < cooler_data.CoolerCurrentChipTemp);
@@ -365,75 +388,84 @@ void DoRegulation(void) {
 
     fprintf(stderr, "New cooler ramp with %d points:\n", ramp_points);
     for (int i=0; i<ramp_points; i++) {
-      RampPoint p;
-      p.ramp_t = now + (i*seconds_per_ramp_step);
+      TempPoint p;
+      p.timestamp = now + (i*seconds_per_ramp_step);
       p.setpoint = cooler_data.CoolerCurrentChipTemp + (i+1)*ramp_multiplier*temp_increment;
       fprintf(stderr, "    time = %Lu, temp = %.2lf\n",
-	      (unsigned long long) p.ramp_t, p.setpoint);
+	      (unsigned long long) p.timestamp, p.setpoint);
 
-      current_state.current_ramp.push_back(p);
+      current_ramp.push_back(p);
     }
     in_ramp = true;
   }
 
   if (in_ramp) {
-    RampPoint p = current_state.current_ramp.front();
-    if (now >= p.ramp_t) {
-      current_state.current_working_setpoint = p.setpoint;
-      current_state.current_ramp.pop_front();
+    TempPoint p = current_ramp.front();
+    if (now >= p.timestamp) {
+      current_working_setpoint = p.setpoint;
+      current_ramp.pop_front();
     }
   } else {
-    current_state.current_working_setpoint = cooler_data.CoolerTempCommand;
+    current_working_setpoint = cooler_data.CoolerTempCommand;
   }
 
   fprintf(stderr, "Current chip temp = %.2lf, current target = %.2lf\n",
 	  cooler_data.CoolerCurrentChipTemp,
-	  current_state.current_working_setpoint);
+	  current_working_setpoint);
 
   static double last_chip_temp = 0.0; // possibly bad initial value!
-  int target_power = (cooler_data.CoolerCurrentAmbient -ambient_offset - current_state.current_working_setpoint)/power_ratio + 0.5;
+  int target_power = (cooler_data.CoolerCurrentAmbient -ambient_offset - current_working_setpoint)/power_ratio + 0.5;
   fprintf(stderr, "target_power = %d\n", target_power);
 
   // calculate slope
-  current_state.chip_temp_history.push_back(cooler_data.CoolerCurrentChipTemp);
-  if (current_state.chip_temp_history.size() > slope_number_points) {
-    current_state.chip_temp_history.pop_front();
+  chip_temp_history.push_back(TempPoint{now,cooler_data.CoolerCurrentChipTemp});
+  if (chip_temp_history.size() > slope_number_points) {
+    chip_temp_history.pop_front();
   }
-  const int num_slope_points = current_state.chip_temp_history.size();
+  const int num_slope_points = chip_temp_history.size();
   // slope will be zero if don't have enough points to measure slope
-  const double slope = ((num_slope_points>1) ? (current_state.chip_temp_history.back() -
-						current_state.chip_temp_history.front())/
-			((num_slope_points-1)*cooler_cycle_time) : 0.0);
+  double slope = 0.0;
+  if (num_slope_points > 1) {
+    TempPoint p1 = chip_temp_history.front();
+    TempPoint p2 = chip_temp_history.back();
+    long delta_t = p2.timestamp - p1.timestamp;
+    if (delta_t > 0) {
+      // positive means chip is warming
+      slope = (p2.setpoint - p1.setpoint)/delta_t;
+    }
+  }
 
-  double temp_err = current_state.current_working_setpoint -
-    cooler_data.CoolerCurrentChipTemp;
+  double temp_err = current_working_setpoint - cooler_data.CoolerCurrentChipTemp;
+  double trial_integrated_error = integrated_error;
   
   // calculated integrated error
-  int delta_time = now - last_time;
-  last_time = now;
   if (first_time) {
     first_time = false;
+    trial_integrated_error = 0.0;
   } else {
-    integrated_error += (delta_time*temp_err);
+    int delta_time = now - last_time;
+    trial_integrated_error += (delta_time*temp_err);
   }
+  last_time = now;
 
   // calculate new power level
 #if 1
   int command = target_power + int(-(temp_err*gain_p +
-				     integrated_error*gain_i +
-				     slope*gain_d));
+				     trial_integrated_error*gain_i +
+				     (-slope)*gain_d));
 #else
   int command = int(-(temp_err*gain_p +
-		      integrated_error*gain_i +
-		      slope*gain_d));
+		      trial_integrated_error*gain_i +
+		      (-slope)*gain_d));
 #endif
   if (command > 255) {
     command = 255;
-    ResetIntegrator();
-  }
-  if (command < 0) {
+    //Reset();
+  } else if (command < 0) {
     command = 0;
-    ResetIntegrator();
+    //Reset();
+  } else {
+    integrated_error = trial_integrated_error;
   }
 
   fprintf(stderr, "%Lu, %.2lf, %.2lf, %.2lf, %d, %lf, %d, (%lf, %lf, %lf)\n",
@@ -442,7 +474,7 @@ void DoRegulation(void) {
 	  temp_err,
 	  command,
 	  slope,
-	  target_power, temp_err*gain_p, integrated_error*gain_i, slope*gain_d);
+	  target_power, temp_err*gain_p, integrated_error*gain_i, -slope*gain_d);
 	  
   fprintf(stderr, "new command = %d\n", command);
 
