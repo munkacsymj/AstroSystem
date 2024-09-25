@@ -33,6 +33,12 @@ PRB::PRB(int size) : buflen(size), ring_start(0), ring_next(0), buffer(new unsig
   ;
 }
 
+void
+PRB::Reset(void) {
+  ring_start = 0;
+  ring_next = 0;
+}
+
 PRB::~PRB(void) {
   delete [] buffer;
 #if 0

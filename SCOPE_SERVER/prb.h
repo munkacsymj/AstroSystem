@@ -27,6 +27,8 @@ public:
   PRB(int size);
   ~PRB(void);
 
+  void Reset(void);
+
   unsigned int buflen;
 
   // "i" should be incremented with
