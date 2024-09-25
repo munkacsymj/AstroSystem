@@ -1,4 +1,4 @@
-all: focus_server focuser_reset focuser_test c14focuser esatto
+all: focus_server focuser_reset focuser_test
 
 FOCUS_OBJ = c14focuser.o esatto_focuser.o
 
@@ -6,8 +6,6 @@ LOCAL_OBJS = $(FOCUS_OBJ) \
 	prb.o \
 	json.o \
 	track.o \
-	json.o \
-	prb.o \
 	arduino_serial_lib.o \
 	flatlight.o \
 	focus_server.o \
@@ -18,27 +16,18 @@ LIBS = \
        ../REMOTE_LIB/libremote_lib.a \
        ../IMAGE_LIB/libImage.a \
        ../DATA_LIB/libdata_lib.a \
-       ../../CFITSIO/cfitsio/libcfitsio.a \
+       ../CFITSIO/cfitsio/libcfitsio.a \
        -L/usr/X11R6/lib -lXaw -lXt -lX11 -lgsl -lgslcblas \
        -lm  -lpthread
 
-CXXFLAGS=-g -I../REMOTE_LIB -I../ASTRO_LIB
-CFLAGS=-g -I../REMOTE_LIB -I../ASTRO_LIB
+CXXFLAGS=-g -I../REMOTE_LIB -I../ASTRO_LIB 
+CFLAGS=-g -I../REMOTE_LIB -I../ASTRO_LIB 
 
 clean:
 	rm -f *.o focuser_reset focus_server
 
-c14focuser: c14focuser.o arduino_serial_lib.o
-	g++ -o c14focuser c14focuser.o arduino_serial_lib.o -lpthread
-
-c14focuser.o: c14focuser.cc
-	g++ -c c14focuser.cc
-
-esatto: esatto.o arduino_serial_lib.o json.o
-	g++ -o esatto esatto.o arduino_serial_lib.o json.o -lpthread
-
-esatto.o: esatto.cc json.h
-	g++ -c esatto.cc
+test_esatto: test_esatto.o json.o
+	g++ -o test_esatto test_esatto.o json.o arduino_serial_lib.o -lstdc++
 
 focuser_reset: focuser_reset.c
 	g++ focuser_reset.c -o focuser_reset
