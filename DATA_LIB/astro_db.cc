@@ -817,6 +817,8 @@ AstroDB::AddInstMags(juid_t source_exposure,
   new_seq->InsertAssignmentIntoSeq(new JSON_Expression(JSON_ASSIGNMENT,
 						       "exposure",
 						       (long) source_exposure));
+  new_seq->InsertUpdateTSTAMPInSeq();
+
   // Get JD, exp_time of the exposure
   {
     JSON_Expression *host_image = this->FindByJUID(source_exposure);
