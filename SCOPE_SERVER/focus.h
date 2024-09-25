@@ -24,31 +24,16 @@
 extern "C" {
 #endif
   
-<<<<<<< focus.h
-  //extern int focus_fd;		/* file descriptor */
-  void c14focus(int direction, unsigned long duration);
-  void c14focus_move(int direction,
-		     unsigned long total_duration,
-		     unsigned long step_size);
-=======
 //extern int focus_fd;		/* file descriptor */
 void c14focus(int direction, unsigned long duration);
 void c14focus_move(int direction,
 		   unsigned long total_duration,
 		   unsigned long step_size);
->>>>>>> 1.5
 
-<<<<<<< focus.h
-  long c14cum_focus_position(void);
-
-  void esattofocus(int direction, unsigned long duration);
-  long esattocum_focus_position(void);
-=======
 long c14cum_focus_position(void);
 
 void esattofocus(int direction, unsigned long duration);
 long esattocum_focus_position(void);
->>>>>>> 1.5
 
 #ifdef __cplusplus
 }
