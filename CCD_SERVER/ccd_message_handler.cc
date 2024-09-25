@@ -177,6 +177,7 @@ void LogTag(const char *msg) {
 void printerror( int status);
 void FilterTimeout(long user_data);
 void ExposureTimeout(long user_data);
+void ExposureTimeoutWithLock(long user_data);
 void show_error(const char *s, int err);
 void send_status_message(int socket_fd, CameraMessage *request=0);
 void UpdateCameraStatus(void);
@@ -248,7 +249,7 @@ void ScheduleExposureTimeout(void) {
 	      delta_time.tv_sec, delta_time.tv_usec);
       SetTimeout(&delta_time,
 		 0,			// userdata
-		 ExposureTimeout);
+		 ExposureTimeoutWithLock);
     }
   } else if (MainExposure.CurrentState == ReadyForExposureToEnd) {
     // Subsequent calls near expected exposure end time
@@ -257,7 +258,7 @@ void ScheduleExposureTimeout(void) {
       return;
     }
     struct timeval delta_time = { (int)(EXP_TICK), (int)(EXP_TICK*1000000.0+0.5) };
-    SetTimeout(&delta_time, 0, ExposureTimeout);
+    SetTimeout(&delta_time, 0, ExposureTimeoutWithLock);
   } else {
     fprintf(stderr,
 	    "ScheduleExposureTimeout(): CurrentState mismatch: %d\n",
@@ -300,12 +301,18 @@ void FilterTimeout(long user_data) {
   }
 }
 
+void ExposureTimeoutWithLock(long user_data) {
+  GetCameraLock();
+  fprintf(stderr, "Obtained ExposureTimeoutWithLock camera lock.\n");
+  ExposureTimeout(user_data);
+  ReleaseCameraLock();
+}
+  
 void ExposureTimeout(long user_data) {
   LogTag("ExposureTimeout()");
   struct timeval Now;
   (void) gettimeofday(&Now, 0);
 
-  fprintf(stderr, "Exposure timeout.\n");
   MainExposure.CurrentState = ReadyForExposureToEnd;
 
   uint32_t remaining_time = GetQHYCCDExposureRemaining(camhandle);
@@ -368,10 +375,14 @@ void StartExposure(void) {
   // SUBFRAME
   //****************
   int subframe_width = MainExposure.SubFrameData.SubframeRight -
-    MainExposure.SubFrameData.SubframeLeft;
+    MainExposure.SubFrameData.SubframeLeft+1;
   int subframe_height = MainExposure.SubFrameData.SubframeTop -
-    MainExposure.SubFrameData.SubframeBottom;
+    MainExposure.SubFrameData.SubframeBottom+1;
   const int left_edge = MainExposure.SubFrameData.SubframeLeft+CameraData.OverscanW;
+  const bool do_fullframe = (MainExposure.SubFrameData.SubframeLeft   == 0 and
+			     MainExposure.SubFrameData.SubframeTop    == 0 and
+			     MainExposure.SubFrameData.SubframeBottom == 0 and
+			     MainExposure.SubFrameData.SubframeRight  == 0);
 
   if (left_edge+subframe_width > CameraData.MaxWidth) {
     subframe_width = CameraData.MaxWidth - left_edge;
@@ -381,7 +392,8 @@ void StartExposure(void) {
     subframe_height = OPTIC_BLACK_EDGE - MainExposure.SubFrameData.SubframeBottom;
   }
   
-  if (subframe_width <= 0 or
+  if (do_fullframe or
+      subframe_width <= 0 or
       subframe_height <= 0 or
       MainExposure.SubFrameData.SubframeLeft < 0 or
       MainExposure.SubFrameData.SubframeTop < 0 or
@@ -419,6 +431,7 @@ void StartExposure(void) {
 	    MainExposure.ExposureTimeSeconds * 1000000);
   }
 
+#if 0
   //****************
   // USB TRAFFIC
   //****************
@@ -431,6 +444,7 @@ void StartExposure(void) {
     fprintf(stderr, "SetQHYCCDParam(USBTRAFFIC, %.0lf)\n",
 	    MainExposure.DesiredUSBTraffic);
   }
+#endif
 
   //****************
   // OFFSET
@@ -684,7 +698,7 @@ void ReadoutExposure(void) {
   // convention that that "top" of the CCD is at 0.
 
   uint32_t w, h, bpp, channels;
-  fprintf(stderr, "iBuffer = %p\n", iBuffer);
+  fprintf(stderr, "iBuffer = %p, \n", iBuffer);
   result = GetQHYCCDSingleFrame(camhandle, &w, &h, &bpp, &channels, iBuffer);
 
   if (bpp != 16) {
@@ -692,7 +706,11 @@ void ReadoutExposure(void) {
     return;
   }
 
-  LogTag("Readout finished");
+  {
+    char msg_buffer[256];
+    sprintf(msg_buffer, "Readout finished, w = %d, h = %d", w, h);
+    LogTag(msg_buffer);
+  }
 
   fitsfile *fptr;
   long naxes[2] = { w/MainExposure.DesiredBinning,
@@ -1208,6 +1226,7 @@ void initialize_ccd(void) {
   cooler_data->CoolerTempCommand = 10.0;
 #endif // TEST_COOLER
 
+  SetQHYCCDLogLevel(1); // LOG_TRACE
 }
   
 //****************************************************************
@@ -1340,13 +1359,20 @@ void handle_expose_message(CameraMessage *msg, int socket_fd) {
     fprintf(stderr, "Exposure msg->desired_filter %s in CFW slot %d\n", 
     	    requested_filter_letter, desired_filter_pos);
 
+    if (desired_filter_pos < 0) {
+      fprintf(stderr, "Invalid filter request: '%s'", requested_filter_letter);
+      desired_filter_pos = 0;
+    }
+
     //fprintf(stderr, "Filter is in position %d\n", desired_filter_pos);
     MainExposure.DesiredFilterWheelPos = desired_filter_pos;
   }
 
+  GetCameraLock();
   UpdateCameraStatus();		// get current CFW info
   MainExposure.CurrentState = ExposureRequested;
   ProcessAll();
+  ReleaseCameraLock();
 }
 
 //****************************************************************
@@ -1477,9 +1503,7 @@ int handle_message(int socket_fd) {
 	send_status_message(socket_fd, cm);
 	ReleaseCameraLock();
       } else if (cmd == CMD_EXPOSE) {
-	GetCameraLock();
 	handle_expose_message(cm, socket_fd);
-	ReleaseCameraLock();
       } else if (cmd == CMD_SHUTDOWN) {
 	fprintf(stderr, "CMD_SHUTDOWN not yet implemented.\n");
       } else {
@@ -2053,6 +2077,12 @@ void SDKSetCameraDefaults(void) {
 }
 
 void SetFullFrame(void) {
+  fprintf(stderr, "SetFullFrame(%d, %d, %d, %d)\n",
+	  CameraData.OverscanW,
+	  0,
+	  CameraData.MaxWidth - CameraData.OverscanW,
+	  OPTIC_BLACK_EDGE);
+	  
   int result = SetQHYCCDResolution(camhandle,
 				   CameraData.OverscanW,
 				   0,
@@ -2082,12 +2112,14 @@ void GetCameraLock(void) {
   if (pthread_mutex_lock(&camera_mutex)) {
     perror("pthread_mutex_lock(camera): ");
   }
+  fprintf(stderr, "Camera Lock successful.\n");
 }
 
 void ReleaseCameraLock(void) {
   if (pthread_mutex_unlock(&camera_mutex)) {
     perror("pthread_mutex_unlock(camera): ");
   }
+  fprintf(stderr, "Camera Lock released.\n");
 }
 
 void CameraLockInit(void) {
