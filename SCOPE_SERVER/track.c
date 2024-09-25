@@ -56,7 +56,7 @@ void any_track(int msec, char direction_letter) {
 
 void track(int NorthMSec, int EastMSec) {
   static int guide_speed_set = 0;
-  commands_sent_ptr = 0;
+  commands_sent_ptr = commands_sent;
   commands_sent[0] = 0;
 
   /* guide speed needs to be set once per session, but it doesn't hurt
