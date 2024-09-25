@@ -16,19 +16,16 @@ class JSON_Expression {
 
   const JSON_Expression *GetValue(const char *dot_string) const;
 
-  double                       Value_double(void) const;
-  long                         Value_int(void) const;
-  std::string                  Value_string(void) const;
-  std::list<JSON_Expression *> Value_list(void) const;
+  double      Value_double(void) const;
+  long        Value_int(void) const;
+  const char *Value_char(void) const;
   bool        IsEmpty(void)  const { return j_type == JSON_EMPTY; }
   bool        IsSeq(void)    const { return j_type == JSON_SEQ; }
   bool        IsInt(void)    const { return j_type == JSON_INT; }
   bool        IsDouble(void) const { return j_type == JSON_FLOAT; }
-  bool        IsList(void)   const { return j_type == JSON_LIST; }
 
  private:
-  enum JASON_TYPE { JSON_SEQ, JSON_STRING, JSON_LIST,
-		    JSON_FLOAT, JSON_INT, JSON_ASSIGNMENT, JSON_EMPTY } j_type;
+  enum JASON_TYPE { JSON_SEQ, JSON_STRING, JSON_FLOAT, JSON_INT, JSON_ASSIGNMENT, JSON_EMPTY } j_type;
   double float_val;
   const char *string_val {nullptr};
   long int_val;

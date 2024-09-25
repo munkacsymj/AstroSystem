@@ -8,8 +8,6 @@
 enum TokenType {
 		TOK_LEFTBRACKET,
 		TOK_RIGHTBRACKET,
-		TOK_LEFTSQUARE,
-		TOK_RIGHTSQUARE,
 		TOK_STRING,
 		TOK_INT,
 		TOK_COMMA,
@@ -44,7 +42,7 @@ JSON_Expression::~JSON_Expression(void) {
 }
 
 void Tokenize(const char *byte_string, std::list<JSON_Token *> &output) {
-  do {
+  while(*byte_string) {
     while(isspace(*byte_string)) byte_string++;
     // first non-whitespace char determines type
     JSON_Token *t = new JSON_Token;
@@ -52,10 +50,6 @@ void Tokenize(const char *byte_string, std::list<JSON_Token *> &output) {
       t->tok_type = TOK_LEFTBRACKET;
     } else if (*byte_string == '}') {
       t->tok_type = TOK_RIGHTBRACKET;
-    } else if (*byte_string == '[') {
-      t->tok_type = TOK_LEFTSQUARE;
-    } else if (*byte_string == ']') {
-      t->tok_type = TOK_RIGHTSQUARE;
     } else if (*byte_string == ',') {
       t->tok_type = TOK_COMMA;
     } else if (*byte_string == ':') {
@@ -86,7 +80,7 @@ void Tokenize(const char *byte_string, std::list<JSON_Token *> &output) {
       // extract a string
       const char *s = byte_string+1;
       while(*s and *s != '"') s++;
-      const int len = (s - byte_string)-1;
+      const char len = (s - byte_string)-1;
       char *d = (char *) malloc(1+len);
       strncpy(d, byte_string+1, len);
       d[len] = 0;
@@ -99,7 +93,7 @@ void Tokenize(const char *byte_string, std::list<JSON_Token *> &output) {
     }
     output.push_back(t);
     byte_string++;
-  } while(1); // only exit is with break;
+  }
 }
 
 void PrintTokens(std::list<JSON_Token *> &input_list) {
@@ -121,16 +115,6 @@ void PrintTokens(std::list<JSON_Token *> &input_list) {
 
     case TOK_RIGHTBRACKET:
       p_tok_type = "}";
-      p_tok_val = "";
-      break;
-
-    case TOK_LEFTSQUARE:
-      p_tok_type = "[";
-      p_tok_val = "";
-      break;
-
-    case TOK_RIGHTSQUARE:
-      p_tok_type = "]";
       p_tok_val = "";
       break;
 
@@ -179,7 +163,7 @@ JSON_Expression::JSON_Expression(const char *byte_string) {
 
   // This is ugly. I know. Sorry.
   JSON_Expression expr(tokens);
-  j_type = expr.j_type;
+  j_type = expr.j_type; // remember: might be JSON_EMPTY
   float_val = expr.float_val;
   string_val = expr.string_val;
   int_val = expr.int_val;
@@ -209,6 +193,11 @@ JSON_Expression::JSON_Expression(void) {
 // tokens untouched. 
 JSON_Expression::JSON_Expression(std::list<JSON_Token *> &tokens) {
   // type of first token determines type of expression
+
+  if (tokens.size() == 0) {
+    j_type = JSON_EMPTY;
+    return;
+  }
 
   switch(tokens.front()->tok_type) {
   case TOK_LEFTBRACKET:
@@ -246,19 +235,7 @@ JSON_Expression::JSON_Expression(std::list<JSON_Token *> &tokens) {
       tokens.pop_front(); // remove '}' or COMMA
       if (next_token == TOK_RIGHTBRACKET) break;
     } while (1); // only way out is break in preceeding line
-    break;
-
-  case TOK_LEFTSQUARE:
-    // A list: [ expr, expr, expr ]
-    j_type = JSON_LIST;
-    tokens.pop_front(); // remove '['
-    while (tokens.front()->tok_type != TOK_RIGHTSQUARE) {
-      JSON_Expression *listexpr = new JSON_Expression(tokens);
-      seq_val.push_back(listexpr);
-      if (tokens.front()->tok_type == TOK_COMMA) tokens.pop_front();
-    }
-    tokens.pop_front(); // remove ']'
-    break;
+    break;  
 
   case TOK_STRING:
     // easy, just a string expression
@@ -332,18 +309,6 @@ const JSON_Expression *JSON_Expression::GetValue(const char *dot_string) const {
   return nullptr;
 }
 
-std::list<JSON_Expression *>
-JSON_Expression::Value_list(void) const {
-  if (not IsList()) {
-    fprintf(stderr, "JSON::Value_list() type mismatch\n");
-    Print(stderr);
-    return std::list<JSON_Expression *>();
-  }
-
-  return seq_val;
-}
-
-
   
 long
 JSON_Expression::Value_int(void) const {
@@ -368,6 +333,19 @@ JSON_Expression::Value_double(void) const {
     return 0.0;
   } else {
     return float_val;
+  }
+}
+
+const char *
+JSON_Expression::Value_char(void) const {
+  if (j_type == JSON_SEQ and seq_val.size() == 1) return seq_val.front()->Value_char();
+  
+  if (j_type != JSON_STRING) {
+    fprintf(stderr, "JSON::Value_char() type mismatch\n");
+    Print(stderr);
+    return nullptr;
+  } else {
+    return string_val;
   }
 }
 
@@ -404,20 +382,10 @@ JSON_Expression::Print(FILE *fp, int indent) const {
 
   case JSON_SEQ:
     type = "SEQ";
-    sprintf(message, "%ld entries\n", seq_val.size());
+    sprintf(message, "%lu entries\n", seq_val.size());
     val_ptr = message;
     break;
 
-  case JSON_LIST:
-    type = "LIST";
-    sprintf(message, "%ld entries\n", seq_val.size());
-    val_ptr = message;
-    break;
-
-  case JSON_EMPTY:
-    type = "EMPTY";
-    val_ptr = "<nil>";
-    break;
   }
 
   for(int i=0; i<indent; i++) fprintf(fp, " ");
