@@ -6,10 +6,15 @@
 #include "focus.h"
 #include "prb.h"
 
+void RawExecuteMove(int num_steps); // forward declaration
+
+#define BACKLASH (202+102)
+
 //#define TEST_MODE
 
 int focus_fd = -1;
 static int &c14focuser_fd = focus_fd;
+static PRB ring(24);
 
 static const char *devname = "/dev/serial/by-id/usb-FTDI_FT231X_USB_UART_DN0402M3-if00-port0";
 
@@ -179,6 +184,23 @@ void PrintResponse(void) {
   }
 }
 
+static long NetFocusPosition = 0; /* encoder value */
+static int next_command_seq = 4;
+static int last_direction = 0; // 0  == positive step count
+                               // 1 == negative step count
+
+void SetNetFocusPosition(Command &cur_pos_cmd) {
+  // If the last command was in the positive direction, then the
+  // current position is what the Arduino is reporting. If the last
+  // command was in the negative direction, then the current position
+  // is "BACKLASH" greater than the Arduino-reported position.
+  const int reported_position = (int16_t) cur_pos_cmd.cc_word;
+  const int reported_direction = cur_pos_cmd.cc_byte1;
+
+  NetFocusPosition = reported_position + BACKLASH*(reported_direction);
+  last_direction = reported_direction;
+}
+
 static void *ListenerThread(void *arg) {
   PRB *ring = (PRB *) arg;
   FILE *listener_log = fopen("/tmp/Listener.txt", "w");
@@ -194,13 +216,14 @@ static void *ListenerThread(void *arg) {
       return nullptr;
     } else if (r == -2) {
       // normal timeout: do nothing
-      fprintf(stderr, "-");
+      // fprintf(stderr, "-");
+      ;
     } else {
       ring->AddNewData(buffer[0]);
       fprintf(listener_log, "0x%02x ", buffer[0]);
       if (buffer[0] == 0x33) fprintf(listener_log, "\n");
       fflush(listener_log);
-      fprintf(stderr, "X");
+      //fprintf(stderr, "X");
     }
   }
   fclose(listener_log);
@@ -313,11 +336,11 @@ int main(int argc, char **argv) {
 #else // NOT test mode
 
 static int initialized = 0;
-static PRB ring(24);
 
 void get_focus_encoder(void);
 
 void initialize_focuser(void) {
+  sender_log = fopen("/tmp/sender_C14.txt", "w");
   pthread_t listener_thread;
   InitFocuser();
   sleep(2);
@@ -325,11 +348,11 @@ void initialize_focuser(void) {
 			   nullptr,
 			   ListenerThread,
 			   &ring);
-  get_focus_encoder();
-}
 
-static long NetFocusPosition = 0; /* encoder value */
-int next_command_seq = 4;
+  RawExecuteMove(600);
+  RawExecuteMove(-600);		// this will get "last_direction" set
+				// correctly. 
+}
 
 void get_focus_encoder(void) {
   if (!initialized) {
@@ -350,7 +373,7 @@ void get_focus_encoder(void) {
       (command_in.cc_byte1 == 0 || command_in.cc_byte1 == 1) &&
       command_in.cc_seq == command_out.cc_seq) {
 
-    NetFocusPosition = (int16_t) command_in.cc_word;
+    SetNetFocusPosition(command_in);
 
     fprintf(stderr,
 	    "c14focuser: focuser position = %ld\n",
@@ -375,8 +398,11 @@ void c14focus(int direction, unsigned long duration) {
       ((direction == DIRECTION_IN) ? -duration : duration);
   }
 
-  const int delta = abs(desired_position - NetFocusPosition);
+  int delta = abs(desired_position - NetFocusPosition);
   const int direction_code = (desired_position < NetFocusPosition);
+  if (last_direction != direction_code) {
+    delta += BACKLASH;
+  }
 
   command_out.cc_command = MSG_MOVE;
   command_out.cc_seq = next_command_seq;
@@ -391,7 +417,7 @@ void c14focus(int direction, unsigned long duration) {
   if (command_in.cc_command == MSG_CURPOS &&
       (command_in.cc_byte1 == 0 || command_in.cc_byte1 == 1) &&
       command_in.cc_seq == command_out.cc_seq) {
-    NetFocusPosition = (int16_t) command_in.cc_word;
+    SetNetFocusPosition(command_in);
   } else {
     fprintf(stderr, "c14focuser: invalid response to MOVE command:\n");
     PrintResponse();
@@ -414,4 +440,33 @@ long c14cum_focus_position(void) {
 }
 
 #endif
+
+//****************************************************************
+//        RawExecuteMove()
+// Sends command to Arduino. This routine does not understand
+// backlash correction. You must take care of backlash before calling
+// RawExecuteMove().
+//****************************************************************
+void RawExecuteMove(int num_steps) {
+  const int direction_code = (num_steps < 0);
+
+  command_out.cc_command = MSG_MOVE;
+  command_out.cc_seq = next_command_seq;
+  next_command_seq = (next_command_seq+1) % 16;
+  command_out.cc_byte1 = direction_code;
+  command_out.cc_word = abs(num_steps);
+  command_out.cc_status = COMMAND_OK;
+
+  SendMessage();
+  ReadCommand(ring);		// possibly blocks for a long time
+
+  if (command_in.cc_command == MSG_CURPOS &&
+      (command_in.cc_byte1 == 0 || command_in.cc_byte1 == 1) &&
+      command_in.cc_seq == command_out.cc_seq) {
+    SetNetFocusPosition(command_in);
+  } else {
+    fprintf(stderr, "c14focuser: invalid response to MOVE command:\n");
+    PrintResponse();
+  }
+}
 
