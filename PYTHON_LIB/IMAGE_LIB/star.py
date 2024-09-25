@@ -64,6 +64,10 @@ class Star:
                 else:
                     filter_string = value
                     self.check_filters = [filter.to_canonical[f] for f in filter_string.split(',')]
+                self.is_check_all_filters = True
+            elif 'CHECK:' in keyword:
+                filter_string = keyword[6:]
+                self.check_filters = [filter.to_canonical[f] for f in filter_string.split(',')]
             elif keyword == 'SUBMIT':
                 self.do_submit = True
             elif keyword == 'NOPOSIT':
@@ -74,6 +78,10 @@ class Star:
                 else:
                     filter_string = value
                     self.ensemble_filters = [filter.to_canonical[f] for f in filter_string.split(',')]
+                self.is_ensemble_all_filters = True
+            elif 'ENSEMBLE:' in keyword:
+                filter_string = keyword[9:]
+                self.ensemble_filters = [filter.to_canonical[f] for f in filter_string.split(',')]
             elif keyword == 'FORCE':
                 pass # ignore
             elif keyword == 'MV':
