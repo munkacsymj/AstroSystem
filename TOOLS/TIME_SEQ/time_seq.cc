@@ -605,7 +605,7 @@ int main(int argc, char **argv) {
 Image *ProcessImage(const char *exposure_filename, Drifter *drift) {
   char command[512];
   
-  sprintf(command, "find_stars -d %s -i %s;star_match -e -f -b -h -n %s -i %s",
+  sprintf(command, "find_stars  %s -i %s;star_match -e -f -b -h -n %s -i %s",
 	  current_dark_name, exposure_filename, starname, exposure_filename);
   if (system(command) == -1) {
     fprintf(stderr, "time_seq_new: cannot invoke find_stars/star_match.\n");
