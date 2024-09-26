@@ -36,8 +36,8 @@ for f in $*
 do find_stars -f -d $DARK -s $FLAT -i $f
    star_match -h -b -e -n $STAR -f -i $f
 done
-#FILTER=${FILTER:0:1} # Just the first char of filtername
-STACKNAME=${OUTFILE%?.phot}_${FILTER:0:1}.fits
+#FILTER=${OUTFILE:$((-6)):1}
+STACKNAME=${OUTFILE%?.phot}_${FILTER}.fits
 stack -e -d $DARK -s $FLAT -o $STACKNAME $*
 find_stars -i $STACKNAME
 star_match -h -e -b -n $STAR -f -i $STACKNAME
