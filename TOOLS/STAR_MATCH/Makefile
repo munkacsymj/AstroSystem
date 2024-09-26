@@ -14,8 +14,8 @@ all: $(TARGETS) $(BIN_DIR)/full_script
 $(BIN_DIR)/full_script:
 	ln -sf $(PWD)/full_script $(BIN_DIR)/full_script
 
-star_match: $(OBJECTS)
-	$(CXXLD) $(OBJECTS) -o star_match $(LIB_DIR) $(ALL_LIBS)
+#star_match: $(OBJECTS)
+	#$(CXXLD) $(OBJECTS) -o star_match $(LIB_DIR) $(ALL_LIBS)
 	#ln -sf $(PWD)/star_match $(BIN_DIR)/star_match
 
 star_match3: $(OBJECTS3)
