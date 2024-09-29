@@ -1,3 +1,5 @@
+// Clamp pixel values at zero to eliminate negative pixels.
+
 #include <Image.h>
 #include <unistd.h>		// getopt()
 #include <stdlib.h>		// exit()

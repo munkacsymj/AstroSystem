@@ -16,9 +16,9 @@ measure_banding: measure_banding.o
 	$(CXXLD) measure_banding.o -o measure_banding $(LIB_DIR) $(ALL_LIBS)
 	ln -s -f $(PWD)/measure_banding $(BIN_DIR)/measure_banding
 
+measure_glow.o: measure_glow.cc
+
 fixup: fixup.o
 	$(CXXLD) fixup.o -o fixup $(LIB_DIR) $(ALL_LIBS)
-
-measure_glow.o: measure_glow.cc
 
 include ../astro.prog.mk
