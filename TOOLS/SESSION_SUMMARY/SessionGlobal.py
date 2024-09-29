@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+sys.path.insert(1, '../../')
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db
 
 homedir = '/home'
