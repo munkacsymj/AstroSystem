@@ -4,7 +4,6 @@
 ##   DEBUGGING: GTK_DEBUG=interactive ./session_summary_old_v2.py
 ################################################################
 
-import pdb
 import sys, getopt
 import shlex
 import re
@@ -43,7 +42,17 @@ import history
 
 import SessionGlobal
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db
 
 #
@@ -625,7 +634,6 @@ if __name__ == "__main__":
 
     #get_descendant(SessionGlobal.root_r, "", 1, doPrint=True)
 
-    #pdb.set_trace()
     gtk.main()
         
     
