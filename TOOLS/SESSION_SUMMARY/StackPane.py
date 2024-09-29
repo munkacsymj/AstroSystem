@@ -287,12 +287,14 @@ class StackControlPane:
         SessionGlobal.notifier.trigger(trigger_source=self,
                                        variable="stack_files"+data,
                                        condition="content_change")
+
         command = "analyzer "
         command += " -t " + SessionGlobal.current_star.name
         command += " -d " + SessionGlobal.homedir
         command += " > /tmp/analyzer.out 2>&1"
         os.system(command)
         SessionGlobal.RecomputeAllBVRI()
+        
 
     def letter_to_button(self, letter):
         if letter == 'B':
