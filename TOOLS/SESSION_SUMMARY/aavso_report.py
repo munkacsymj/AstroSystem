@@ -7,7 +7,17 @@ import gi
 from gi.repository import Gdk as gdk, Gtk as gtk, GLib
 import cairo
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db, astro_directive
 from PYTHON_LIB.IMAGE_LIB import star
 from PYTHON_LIB.IMAGE_LIB import filter as filter_module
@@ -108,7 +118,7 @@ class ReportTab(gtk.ScrolledWindow):
         self.star_selector.connect("changed", self.new_star_cb)
 
         self.grid = gtk.Grid()
-        box.pack_start(self.grid, expand=False, fill=False, padding=0)
+        self.pack_start(self.grid, expand=False, fill=False, padding=0)
         col = 0
         self.widget_info = {}     # key is filter, value is WidgetInfo
         self.gui_lines_mode = {}  # key is filter, value is mode string
@@ -151,7 +161,7 @@ class ReportTab(gtk.ScrolledWindow):
             wi.bottom_text_label.set_justify(gtk.Justification.LEFT)
             wi.bottom_text_label.set_halign(gtk.Align.START)
             wi.bottom_text_label.set_xalign(0.0)
-            box.pack_start(wi.bottom_text_label, expand=False, fill=False, padding=5)
+            self.pack_start(wi.bottom_text_label, expand=False, fill=False, padding=5)
 
             col += 2
 
@@ -294,8 +304,6 @@ class ReportTab(gtk.ScrolledWindow):
                 
     def SetupAAVSOReport(self, starname):
         self.datalines = {} # key is filter, value is dataline
-        self.dld_comp = {}
-        self.dld_man = {}
         if starname is not None:
             self.selected_star = starname
             self.analysis = comp_analy.overall_summary.analysis
@@ -572,7 +580,7 @@ class DataLineDict:
     def ToString(self):
         raw_name = (self.value['cat_name'] if self.value['report_name'] ==
                     None else self.value['report_name']).upper()
-        if 'GSC' in raw_name or IsAUID(raw_name):
+        if 'GSC' in raw_name:
             name = raw_name
         else:
             name = raw_name.replace("-"," ")
@@ -790,7 +798,7 @@ class DataLine:
         elif len(checkrefs) > 1:
             # Pick one; what criteria to use?? Choose brightest.
             best_starname = checkrefs[0]
-            best_mag = catalog[best_starname].ref_mag[self.filter][0]
+            best_mag = catalog[best_starname].ref_mag[self.filter]
             for c in checkrefs[1:]:
                 starname = c
                 (mag, uncty) = catalog[starname].ref_mag[self.filter]
@@ -829,14 +837,13 @@ class DataLine:
                                 profile_dict[r['profile']]['filter'] == self.filter),None)
             if measurement is not None:
                 self.checkmag_std = measurement['mag']
-                profile = profile_dict[measurement['profile']]
             if 'sources' in profile:
                 self.checkmag_inst = GetInstMag(self.checkname, profile['sources'])
             else:
                 self.checkmag_inst = 'na'
 
         print("Checkmag: name=",chosen_check,"(",self.filter,
-              "), analysis juid = ", self.analysis['juid'], "value=",self.checkmag_inst)
+              "), analysis juid = ", self.analysis['juid'])
         if isinstance(self.checkmag_inst, str):
             print("Checkmag concern: ", chosen_check, "(",
                   self.filter, ")")
