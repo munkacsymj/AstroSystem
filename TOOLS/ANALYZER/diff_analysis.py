@@ -1,10 +1,19 @@
-import pdb
 import sys
 import statistics
 
 import context
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db
 
 # A "source_list" is ALWAYS a list of PerImage references
@@ -211,7 +220,6 @@ class BVRIAnalysisSet:
         print(submissions)
                     
     def Close(self):
-        #pdb.set_trace()
         print("BVRIAnalysisSet uses ", len(self.profiles.profiles), " profiles.")
         print("Analyses uses an ensemble: ", context.use_ensemble)
         # Does an existing analysis set exist for this BVRI Set?
@@ -446,8 +454,7 @@ class DataLine:
     # this target
     # "result" -- This refers to a single standard mag item in "results"
     def InitFromJSON(self, analysis, result, inst_mags, cat_star, catalog):
-        def GetInstMag(cat_name, sources): #
-            print("GetInstMag: ", cat_name, " from ", sources)
+        def GetInstMag(cat_name, sources): # 
             inst_mag_list = []
             for d in inst_mags:
                 if d['exposure'] in sources:
@@ -472,9 +479,7 @@ class DataLine:
                 print("Multiple charts referenced: ", chartlist)
             return chartlist.pop()
                     
-        profile_dict = dict([(x['pnum'],x) for x in analysis['profiles']])
-        profile = profile_dict[result['profile']]
-        #profile = next((x for x in analysis['profiles'] if x['pnum'] == result['profile']), None)
+        profile = next((x for x in analysis['profiles'] if x['pnum'] == result['profile']), None)
 
         self.analysis = analysis
         self.calculated = True
@@ -570,13 +575,9 @@ class DataLine:
             #print(catalog)
             cat = catalog[self.checkname]
             self.check_auid = cat.AUID
-            measurement = next((r for r in analysis['results']
-                                if r['name'] == chosen_check and
-                                profile_dict[r['profile']]['filter'] == self.filter),None)
+            measurement = next((r for r in analysis['results'] if r['name'] == chosen_check),None)
             if measurement is not None:
                 self.checkmag_std = measurement['mag']
-                print("Measurement tied to profile ", measurement['profile'])
-                profile = profile_dict[measurement['profile']]
             if 'sources' in profile:
                 self.checkmag_inst = GetInstMag(self.checkname, profile['sources'])
             else:

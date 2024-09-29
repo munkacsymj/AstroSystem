@@ -16,8 +16,18 @@ import key_stars
 import filter
 import context
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT/TOOLS/SESSION_SUMMARY')
-import astro_db
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
+import PYTHON_LIB.ASTRO_DB_LIB.astro_db
 
 all_sequences = {}
 

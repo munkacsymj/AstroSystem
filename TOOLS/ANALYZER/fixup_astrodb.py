@@ -3,7 +3,17 @@
 import sys
 import json
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db
 
 num_filter_fixes = 0

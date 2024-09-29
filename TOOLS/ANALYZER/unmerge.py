@@ -3,8 +3,20 @@
 import json
 import getopt
 import sys
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT/TOOLS/SESSION_SUMMARY')
-import astro_db
+import os
+
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
+import PYTHON_LIB.ASTRO_DB_LIB.astro_db
 
 def UnMerge(root_dir):
     db_obj = astro_db.AstroDB(root_dir)

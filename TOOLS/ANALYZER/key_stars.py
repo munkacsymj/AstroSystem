@@ -1,12 +1,22 @@
-import pdb
 import context
 import math
 import statistics
+
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.IMAGE_LIB import filter
 
 class KeyStars:
     def __init__(self, directive, target_name):
-        #pdb.set_trace()
         fatal_error = False;
         self.comps = {}         # index by color, value is single  star.Star
         self.checks = {}        # index by color, value is list of star.Star
