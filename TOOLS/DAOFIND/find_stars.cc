@@ -233,17 +233,6 @@ int main(int argc, char **argv) {
       ap_xy_round(found_stars, image, rp);
       ap_test(found_stars, image, rp);
 
-#if 0
-      std::cout << "starlist follows:\n";
-      for (auto star : found_stars) {
-	std::cout << "(" << star->x << "," << star->y << ") "
-		  << "sharp=" << star->sharp
-		  << " round1=" << star->round1
-		  << " round2=" << star->round2
-		  << " valid=" << star->valid << "\n";
-      }
-#endif
-      
       if(cycle_number == 1) {
 	for (auto star : found_stars) {
 	  star->peak_value = image.pixel((int)(star->x + 0.5), (int)(star->y+0.5));
@@ -305,6 +294,13 @@ int main(int argc, char **argv) {
 
       fprintf(stderr, "find_stars: found %d stars using daofind\n",
 	      newlist.NumStars);
+
+#if 0
+      if(image.GetImageInfo() &&
+	 image.GetImageInfo()->RotationAngleValid()) {
+	newlist.ImageRotationAngle = image.GetImageInfo()->GetRotationAngle();
+      }
+#endif
 
       newlist.SaveIntoFITSFile(image_filename, 1);
     }
