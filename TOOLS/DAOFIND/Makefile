@@ -6,11 +6,14 @@ TARGETS = find_stars test_stars
 
 #CXXFLAGS += -pg 
 
-all: $(TARGETS)
+all: $(TARGETS) $(BIN_DIR)/full_script
 
 find_stars: $(OBJECTS)
 	$(CXXLD) $(OBJECTS) -o find_stars $(LIB_DIR) $(ALL_LIBS)
 	ln -sf $(PWD)/find_stars $(BIN_DIR)/find_stars
+
+$(BIN_DIR)/full_script: ./full_script
+	ln -sf $(PWD)/full_script $(BIN_DIR)/full_script
 
 test_stars: test_stars.o
 	$(CXXLD) test_stars.o -o test_stars $(LIB_DIR) $(ALL_LIBS)
