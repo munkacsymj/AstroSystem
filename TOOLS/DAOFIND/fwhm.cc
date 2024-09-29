@@ -124,7 +124,6 @@ struct ThreadData {
   FWHMParam *params;
 };
 
-//static constexpr int NUM_THREADS = 1;
 static constexpr int NUM_THREADS = 6;
 
 void *thread_measure_fwhm(void *raw_data) {
@@ -247,8 +246,6 @@ void *thread_measure_fwhm(void *raw_data) {
 		   FIT(PARAM_2SIGYY) > 0.5 and
 		   FIT(PARAM_2SIGXX) < 150.0 and
 		   FIT(PARAM_2SIGYY) < 150.0);
-    //fprintf(stderr, "A = %lf, 2SIGXX = %lf, 2SIGYY = %lf, ",
-    //	    FIT(PARAM_A), FIT(PARAM_2SIGXX), FIT(PARAM_2SIGYY));
     //fprintf(stderr, "star->valid = %s\n", star->valid ? "true" : "false");
 
     if (star->valid) {
@@ -273,7 +270,6 @@ void *thread_measure_fwhm(void *raw_data) {
 void measure_fwhm(DAOStarlist &stars, Image &image, FWHMParam &params) {
   pthread_t thread_ids[NUM_THREADS];
   ThreadData thread_data[NUM_THREADS];
-  std::cerr << "NUM_THREADS=" << NUM_THREADS << '\n';
   for (int i=0; i<NUM_THREADS; i++) {
     ThreadData *data = &thread_data[i];
     data->thread_id = i;
@@ -300,15 +296,12 @@ void measure_fwhm(DAOStarlist &stars, Image &image, FWHMParam &params) {
       perror("pthread_join");
     } else {
       for (auto r : thread_data[i].results) {
-	//std::cout << "fwhmX = " << r.FWHMx
-	//	  << ", fwhmY = " << r.FWHMy << "\n";
 	sum_fwhmx += r.FWHMx;
 	sum_fwhmy += r.FWHMy;
 	star_count++;
       }
     }
   }
-  std::cout << "Final star_count = " << star_count << '\n';
 
   if (star_count) {
     params.FWHMx = sum_fwhmx/star_count;
