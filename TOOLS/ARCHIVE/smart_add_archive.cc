@@ -165,7 +165,7 @@ void ProcessCSV(char *home_directory, char *filename) {
   char field1[64];
   char field4[64];
 
-  while(fgets(buffer, sizeof(buffer), fp) != 0) {
+  while(fgets(buffer, sizeof(buffer), fp)) {
     // Extract two fields: the first is everything up to the first
     // comma, the second is everything after the third comma.
     char *s = buffer;
