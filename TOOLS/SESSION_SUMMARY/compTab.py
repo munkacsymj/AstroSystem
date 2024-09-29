@@ -7,7 +7,17 @@ import gi
 from gi.repository import Gdk as gdk, Gtk as gtk, GLib
 import cairo
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db, astro_directive
 from PYTHON_LIB.IMAGE_LIB import star
 from PYTHON_LIB.IMAGE_LIB import filter as filter_module
@@ -464,10 +474,10 @@ class GraphRow:
         self.enable_button = gtk.CheckButton(label='Include')
         self.enable_button.set_active(self.enable_button)
         if fulltype == 'check':
-            if starname not in comp_analy.overall_summary.check_stars_active[self.filter]:
+            if starname in comp_analy.overall_summary.check_stars_active[self.filter]:
                 self.enable_button.set_active(False)
         elif fulltype == 'ensemble':
-            if starname not in comp_analy.overall_summary.ens_stars_active[self.filter]:
+            if starname in comp_analy.overall_summary.ens_stars_active[self.filter]:
                 self.enable_button.set_active(False)
 
         self.is_check = ensemble_member.star_disp.cat_star.IsCheck(self.filter)
