@@ -115,11 +115,11 @@ class FocusTab:
 
         GObject.timeout_add(5000, self.timeout)
         self.thread = threading.Thread(target=MeasureBlurWorker, daemon=True)
-        self.thread.start()
+        #self.thread.start() # temporarily turned off. Needs to be re-enabled.
 
     def timeout(self):
         global blur_task_finished, blur_files_completed
-        print("timeout occurred.", blur_task_finished, blur_files_completed)
+        #print("timeout occurred.", blur_task_finished, blur_files_completed)
         if blur_task_finished:
             # now get blur data (Warning: exposure.blur might be 'None')
             for (target,t_data) in SessionGlobal.star_dictionary.items():
@@ -182,31 +182,39 @@ class FocusTab:
 def MeasureBlurWorker():
     global blur_task_finished
     global blur_files_completed
+    print("MeasureBlurWorker() started.")
     for (target,t_data) in SessionGlobal.star_dictionary.items():
         for (filter,obs_data) in t_data.obs_seq.items():
             for exposure in obs_data.exposures:
-                #print("BlurWorker: ", exposure.filename)
+                print("BlurWorker: ", exposure.filename)
+                
                 blur_image = '/tmp/blur.fits'
                 blur_data_file = '/tmp/blur.txt'
+                try:
+                    os.remove(blur_image)
+                except FileNotFoundError:
+                    pass # silently ignore
+                
                 command = "make_composite "
                 command += (" -i " + exposure.filename)
                 command += (" -o " + blur_image)
                 retval = os.system(command)
-                if retval != 0:
+                if retval != 0 or not os.path.isfile(blur_image):
                     print("Command failed: ", command)
-                command = "/home/mark/ASTRO/CURRENT/TOOLS/FOCUS_MODEL/analyze_composite "
-                command += (" -i " + blur_image)
-                command += (" > " + blur_data_file)
-                retval = os.system(command)
-                if retval != 0:
-                    print("Command failed: ", command)
-                f = open(blur_data_file, "r")
-                all_blur_data = f.read()
-                f.close()
-                if 'gaussian:' in all_blur_data:
-                    exposure.blur = float(all_blur_data.split()[1])
                 else:
-                    exposure.blur = None
-                blur_files_completed += 1
+                    command = "/home/mark/ASTRO/CURRENT/TOOLS/FOCUS_MODEL/analyze_composite "
+                    command += (" -i " + blur_image)
+                    command += (" > " + blur_data_file)
+                    retval = os.system(command)
+                    if retval != 0:
+                        print("Command failed: ", command)
+                    f = open(blur_data_file, "r")
+                    all_blur_data = f.read()
+                    f.close()
+                    if 'gaussian:' in all_blur_data:
+                        exposure.blur = float(all_blur_data.split()[1])
+                    else:
+                        exposure.blur = None
+                    blur_files_completed += 1
 
     blur_task_finished = True
