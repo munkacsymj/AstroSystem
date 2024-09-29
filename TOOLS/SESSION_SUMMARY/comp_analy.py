@@ -9,7 +9,17 @@ import math
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk as gtk
 
-sys.path.insert(1, '/home/mark/ASTRO/CURRENT')
+def ToolRoot(start):
+    while True:
+        (head,tail) = os.path.split(start)
+        if tail == "TOOLS":
+            return head
+        elif tail == '':
+            raise Exception("filepath does not contain TOOLS")
+        else:
+            start = head
+
+sys.path.insert(1, ToolRoot(__file__))
 from PYTHON_LIB.ASTRO_DB_LIB import astro_db,astro_directive
 from PYTHON_LIB.IMAGE_LIB import star, moderole
 from PYTHON_LIB.ASTRO_DB_LIB.util import FindJUID
@@ -302,8 +312,8 @@ class OverallSummary:
         self.check_stars_active = {}   # index: filter, value: set(starname)
         self.ens_stars_superset = {}   # index: filter, value: starname
         self.check_stars_superset = {} # index: filter, value: starname
-        self.ensemble_rms = {} # index by filter, value is rms error (or None)
-        self.check_rms = {}    # same thing for check stars
+        self.ensemble_rms = {}         # index by filter, value is rms error (or None)
+        self.check_rms = {}            # same thing for check stars
         self.directive_juid = None
         for f in standard_colors:
             self.ens_stars_active[f] = set()
@@ -418,6 +428,7 @@ class OverallSummary:
                 this_star_info = StarDisp(star.CatalogLookupByName(self.catalog, x))
                 self.stars[x] = this_star_info
                 this_star_info.Load(a)
+
 
         # The 'ensembles' section of the analysis lists the stars
         # actually used in each ensemble. We pull the union of those
@@ -546,7 +557,6 @@ class OverallSummary:
                             all_stdev[filter] = []
                         all_stdev[filter].append(data['stdev'])
             for (filter,datalist) in all_stdev.items():
-                #print("Filter: ", filter, ", datalist=", datalist)
                 if datalist is not None and len([x for x in datalist if x is not None]) > 0:
                     self.ens_history[filter] = Quadrature(datalist)
         
