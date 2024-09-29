@@ -447,7 +447,7 @@ focus(Image *initial_image,
     }
   }
 
-  if (focuser_to_use != FOCUSER_COARSE) {
+  if (focuser_to_use == FOCUSER_COARSE) {
     hyperbola_C *= 120.3;
     MIN_TRAVEL = 0;
     MAX_TRAVEL = 439000;

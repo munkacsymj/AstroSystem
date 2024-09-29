@@ -39,7 +39,7 @@
 // -n                           // no auto-find, trust initial position
 // -D session_dir               // directory for session files
 // -x UP | DOWN                 // specify prefered direction
-// -F C | F                     // specify the focuser to use (coarse, fine)
+// -F C | F                     // specify the focuser (coarse, fine)
 
 int inhibit_plotting = 0;
 int preferred_direction = DIRECTION_POSITIVE;
@@ -60,7 +60,7 @@ void usage(void) {
   fprintf(stderr, "    -n     [no auto-find, trust initial position]\n");
   fprintf(stderr, "    -D session_dir\n");
   fprintf(stderr, "    -x UP | DOWN    [preferred direction]\n");
-  fprintf(stderr, "    -F C | F [focuser to use]\n");
+  fprintf(stderr, "    -F C | F [focuser:coarse or fine]\n");
   exit(-2);
 }
 
