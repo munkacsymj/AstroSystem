@@ -37,6 +37,7 @@ static void my_gsl_err_handler (const char *reason,
 // (Y^2/a^2) - ((X-R)^2/b2) = 1
 // X = encoder position (ticks)
 // Y = blur
+// a = blur at best focus
 // R = encoder position of best focus (ticks)
 // (b/a) = slope (blur/tick)
 //
@@ -100,6 +101,9 @@ Hyperbola::Hyperbola(double best_guess) {
 void 
 Hyperbola::reset(void) {
   state_var[HYPER_A]     = 0.5;
+  state_var[HYPER_R]     = 100.0;
+  state_var[HYPER_C]     = 36.0;
+  C = 36.0;
 }
 
 void 
@@ -126,12 +130,12 @@ Hyperbola::Solve(RunData *run_data) {
   order = (C < 0.0 ? 3 : 2);
   double old_mel = 0.0;
 
-  // Initial value of C will be the average tick for all the points
+  // Initial value of R will be the average tick for all the points
   double sum_ticks = 0.0;
   for(int i=0; i<run_data->N; i++) {
     sum_ticks += run_data->focus_position[i];
   }
-  state_var[HYPER_R] = sum_ticks/run_data->N;
+  this->reset(sum_ticks/run_data->N);
 
   run_data->print(stderr);
 

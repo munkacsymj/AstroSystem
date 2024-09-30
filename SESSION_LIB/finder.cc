@@ -77,7 +77,6 @@ Finder::Execute(void) {
   const char *image_filename;
 
   SystemConfig config;
-  const bool camera_ST9 = config.IsST9();
 
   finder_flags.SetFilter(Vc_Filter);
 
@@ -87,13 +86,6 @@ Finder::Execute(void) {
   // outer loop is trying to zero in on correct position
   // inner loop is just trying to get an image that we can correlate
 
-  if (camera_ST9) {
-    finder_flags.subframe.box_bottom = 0;
-    finder_flags.subframe.box_top = 511;
-    finder_flags.subframe.box_left = 0;
-    finder_flags.subframe.box_right = 511;
-  }
-  
   do { // loop counting by "move_tries"
     Image *finder = 0;
     

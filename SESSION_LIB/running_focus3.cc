@@ -92,7 +92,7 @@ static double f_number(void) {
 
 static double focus_slope(void) {
   static SystemConfig config;
-  return config.FocusSlope(); // based on bin 3x3??
+  return config.FocusSlope(FOCUSER_FINE); // based on bin 3x3??
 }
 
 //static double M = 0.0135;	// asymptotic slope (75)
@@ -475,11 +475,18 @@ CompositeModel::GetSumSqResiduals(void) const {
 bool StateVectorIsCredible(const FocusModelState &state) {
   const double abs_R = fabs(state.R);
   const double abs_AR = fabs(state.AR);
-  return (state.C > 0 and state.C < 420000 and
-	  //state.A > 0.4 and // seemed to arbitrarily exclude good solutions
-	  state.A < 2.5 and
-	  abs_R < (400000/3600.0) and
-	  abs_AR < (10.0/3600.0));
+  bool credibility = (state.C > 0 and state.C < 420000 and
+		      //state.A > 0.4 and // seemed to arbitrarily exclude good solutions
+		      state.A < 2.5 and
+		      abs_R < (400000/3600.0) and
+		      abs_AR < (10.0/3600.0));
+  if (credibility == false) {
+    std::cerr << "Credibility check fail: \n";
+    std::cerr << "   state.C = " << state.C << ",  ";
+    std::cerr << "   state.A = " << state.A << '\n';
+    std::cerr << "   abs_R = " << abs_R << ", abs_AR = " << abs_AR << '\n';
+  }
+  return credibility;
 }
 
 bool
@@ -1047,15 +1054,19 @@ RunningFocus::AddPoint(double gaussian, double focuser, JULIAN time_tag) {
 // Value of 200 works for the Arduino C14 focuser
 // Value of 10000 for the ESATTO
 #ifdef CONTINUOUS_DITHER
-#define BASE_DITHER 3400.0
-#else
-#define BASE_DITHER 10000.0
-#endif
-static const int dither_size = (int) (0.5 + BASE_DITHER * f_number()/10.0);
+
+static int dither_size(void) {
+  static SystemConfig config;
+  if (config.FineFocuserName() == "ESATTO") {
+    return 10000.0;
+  } else {
+    return 50.0;		// JMI focuser
+  }
+}
 
 static const int dither_sequence[] = {
-  -dither_size, -dither_size, -dither_size,
-  dither_size, dither_size, dither_size,
+  -dither_size(), -dither_size(), -dither_size(),
+  dither_size(), dither_size(), dither_size(),
   0 };
 static const int num_dithers = (sizeof(dither_sequence)/sizeof(dither_sequence[0]));
 
@@ -1327,7 +1338,7 @@ RunningFocus::UpdateFocus(void) { // update right now
 
     long focus_change = (int) (best_focus_now - current_focuser_position + 0.5);
   
-    const long focus_clamp = (int) (0.5 + dither_size*5.5);
+    const long focus_clamp = (int) (0.5 + dither_size()*5.5);
     if (focus_change > focus_clamp) {
       fprintf(rf_log_file, "focus change clamp from %ld to %ld.\n", focus_change, focus_clamp);
       focus_change = focus_clamp;
