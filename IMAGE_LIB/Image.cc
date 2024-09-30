@@ -763,7 +763,7 @@ Image::UpdateStatistics(Statistics *stats, int UseMask) {
       if(UseMask == 0 || StatisticsMask[index] == -1) {
 	double OnePixel = pixel(col, row);
 	  
-	if (OnePixel > data_max) num_saturated++;
+	if (OnePixel >= data_max) num_saturated++;
 
 	if(brightest_pixel < OnePixel) {
 	  brightest_pixel = OnePixel;
@@ -1122,7 +1122,6 @@ Image::GetIStarList(void) {
     // create an empty starlist
     ThisStarList = new IStarList();
 
-#if 0
     // get the image rotation angle, if known (0 if unknown)
     if(image_info &&
        image_info->RotationAngleValid()) {
@@ -1130,7 +1129,6 @@ Image::GetIStarList(void) {
     } else {
       ThisStarList->ImageRotationAngle = 0.0;
     }
-#endif
 
     const double background_variance = stat->StdDev;
     const double detection_threshold = stat->MedianPixel +

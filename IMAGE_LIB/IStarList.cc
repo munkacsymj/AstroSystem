@@ -173,7 +173,7 @@ IStarList::IStarList(void) {
   head = last = 0;
   StarArray = 0;
   StarArrayCorrect = 0;
-  //ImageRotationAngle = 0.0;
+  ImageRotationAngle = 0.0;
 }
 
 IStarList::~IStarList(void) {
@@ -552,14 +552,12 @@ void IStarList::InitializeFromFITSFile(fitsfile *fptr) {
   int status = 0;
 
   // get the rotation angle
-#if 0
   ImageInfo info(fptr);
   if(info.RotationAngleValid()) {
     ImageRotationAngle = info.GetRotationAngle();
   } else {
     ImageRotationAngle = 0.0;	// default
   }
-#endif
 
   // Default initialization (empty star list)
   NumStars = 0;

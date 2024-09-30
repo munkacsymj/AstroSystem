@@ -84,6 +84,7 @@ public:
   IStarList(void);
   ~IStarList(void);
 
+  double ImageRotationAngle;
   int NumStars;			// number of stars in the list
   int IStarAdd(IStarOneStar *new_one);
   int IStarAdd(double weighted_sum_x,

@@ -94,6 +94,7 @@ std::list<FilterNameXref> synonyms
     { "X", FILTER_CBB },
     { "CBB", FILTER_CBB },
     { "SA200", FILTER_SA200 },
+    { "N", FILTER_None },
     { "None", FILTER_None },
   };
 
