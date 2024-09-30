@@ -20,10 +20,11 @@
 #include <math.h>
 #include "refraction.h"
 #include "alt_az.h"
+#include <system_config.h>
 
 static double RefractionTempDegK = 288.0;
 static double RefractionPressMillibar = 1010.0;
-static double latitude = (41.568795 * M_PI / 180.0);
+static double latitude = (system_config.Latitude() * M_PI / 180.0);
 
 // zenith angle measures distance from the zenith in radians (0.0, at
 // the zenith, will give a refraction error of 0.0 radians). This
