@@ -3,13 +3,13 @@ PARAB_H  = $(PARAB).h
 PARAB_CC = $(PARAB).cc
 PARAB_O  = $(PARAB).o
 
-TARGETS = focus test_focus  refocus # parab_test test_composite fine_focus test_hyperbola
+TARGETS = focus test_focus  # parab_test test_composite fine_focus test_hyperbola
 
 OBJECTS = focus1.o \
 	focus_star.o \
 	focus_main.o
 
-all: focus refocus
+all: focus 
 
 fine_focus.o:	fine_focus.cc
 focus.o: 	focus.cc nlls_simple.h $(PARAB_H)
