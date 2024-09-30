@@ -20,6 +20,17 @@ else
   HOSTDEF= -D POGO
 endif
 
+ifeq ($(INTERFACE),INDI)
+  INTERFACE_DEF= -D INDI -D INTERFACE=INDI
+  INTERFACE_FILES = astro_indi.o blocker_indi.o cfw_indi.o cooler_indi.o focuser_indi.o mount_indi.o \
+	scope_api_indi.o st10xme_indi.o camera_api_indi.o
+else ifeq($(INTERFACE),NATIVE)
+  INTERFACE_DEF= -D INTERFACE=NATIVE
+  INTERFACE_FILES = scope_api.o camera_api.o
+else
+  $(error Environment variable INTERFACE not defined as INDI or NATIVE)
+endif
+
 ASTROHOME=$(HOME)
 
 ifeq ($(strip $(HOSTNAME)),JELLYBEAN)
@@ -38,6 +49,7 @@ CXXFLAGS = -O3 -Wall -g -fPIC \
 	-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 	$(HOSTDEF) \
 	$(ASTRO_DEFS) \
+	$(INTERFACE_DEF) \
 	-I . \
 	-I ../IMAGE_LIB \
 	-I ../DATA_LIB \
@@ -114,7 +126,8 @@ TARGETS = FITSMessage.o   \
 		 sync_session.o \
 		 TrackerData.o \
 		 julian.o \
-		 $(OPT_TARGETS)
+		 $(OPT_TARGETS) \
+	$(INTERFACE_FILES) 
 
 libremote_lib.o: $(TARGETS)
 	ld -r -o libremote_lib.o $(TARGETS)
