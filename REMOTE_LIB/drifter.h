@@ -34,9 +34,11 @@ struct AxisMeasurement {
   double weight;
 };
 
+class Drifter;
+
 class AxisDrifter {
  public:
-  AxisDrifter(FILE *logfile, const char *name_of_axis);
+  AxisDrifter(FILE *logfile, const char *name_of_axis, Drifter *parent);
   ~AxisDrifter(void);
 
   inline void SetScale(double scale) { dscale = scale; }
@@ -58,6 +60,8 @@ class AxisDrifter {
   double drift_rate; // current estimate, arcsec/second
   double drift_intercept; // location back when delta_t == 0
   double drift_accel;
+
+  Drifter *parent;
   
   bool initialized;
   double cum_guidance_arcsec; // cum sum of all guidance commands
@@ -85,6 +89,8 @@ class Drifter {
   void ExposureStart(double duration); // blocks for short time (issues guide)
   void ExposureGuide(void);  // blocks for duration of exposure
 
+  void AcceptGuideAmount(double amount, bool axis_is_dec);
+
   void print(FILE *fp);
 
  private:
@@ -92,6 +98,10 @@ class Drifter {
   AxisDrifter *ra_drifter;
   time_t exposure_start_time;
   double exposure_duration;
+  double pending_guide_dec;
+  double pending_guide_ra;
+
+  void IssueGuideCommands(void);
 
   FILE *log;
 };
