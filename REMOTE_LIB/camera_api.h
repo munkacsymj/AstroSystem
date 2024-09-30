@@ -33,6 +33,8 @@ void connect_to_camera(void);
 // a 0 if something goes wrong
 int camera_is_available(void);
 
+void camera_disconnect(void); // noop for NATIVE I/F, but needed for INDI
+
 struct subframe_t {
   int box_left {0}; // 0-based, left<right
   int box_right {0};
@@ -167,42 +169,19 @@ public:
   
 };
 
-void expose_image_local(double exposure_time_seconds,
-			exposure_flags &ExposureFlags,
-			const char *local_FITS_filename,
-			const char *purpose = 0,
-			Drifter *drifter = 0);
-
-// Warning: This version of expose_image() provides an Image pointer
-// instead of the more normal way of fetching an image (via a disk
-// file). This Image will have a few keywords present in the
-// associated ImageInfo, but will NOT have the full rich set of
-// keywords that is present when the version that creates a file is
-// invoked. 
-void expose_image(double exposure_time_seconds,
-		  Image **NewImage,
-		  exposure_flags &ExposureFlags,
-		  const char *purpose = 0,
-		  Drifter *drifter = 0);
-
-// This command is the same as the previous expose_image() function,
-// except that this command *must* be issued on the host machine where
-// the camera is.  The resulting image file will be kept on the host
-// machine. (This command can also be used from another machine, but
-// the resulting image file will not be sent out from the host; it
-// will remain in the host machine's filesystem. This may be useful if
-// a filename is chosen that is NFS mounted so as to be visible to the
-// machine issuing this function.)
-void host_expose_image(double exposure_time_seconds,
-		       exposure_flags &ExposureFlags,
-		       char *host_FITS_filename);
-
 // This form will choose an appropriate filename and return a full
 // path to the place where the image was stored. It will only grab an
 // image from the sub-image specified. Count lines/pixels starting
 // with zero at the bottom and zero along the left edge.  The
 // left parameter should be evenly divisible by 3 and the right
 // parameter should be one less than a multiple of 3 (binning rules).
+void
+do_expose_image(double exposure_time_seconds,
+		exposure_flags &ExposureFlags,
+		const char *host_FITS_filename,
+		const char *purpose = 0,
+		Drifter *drifter = 0);
+
 char *expose_image(double exposure_time_seconds,
 		   exposure_flags &ExposureFlags,
 		   const char *purpose = 0,
@@ -247,9 +226,9 @@ public:
   void SetCoolerSetpoint(double TempC);
   int Send(void);		// returns 1 if successful
 private:
-  int mode;
-  double Power;
-  double Setpoint;
+  enum { NO_COMMAND, MANUAL, SETPOINT, COOLER_OFF } mode {NO_COMMAND};
+  double Power {0.0};
+  double Setpoint {0.0};
 };
 
 // Use this class to send filter configuration commands to the CCD

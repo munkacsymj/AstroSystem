@@ -40,6 +40,10 @@
 #include "image_profile.h"
 #include <iostream>
 
+#ifdef INDI
+#error INDI env variable is set but NATIVE camera_api.cc being compiled.
+#endif
+
 using namespace std;
 
 #define COMM_UNINITIALIZED -2
@@ -94,6 +98,10 @@ int trial_connect_to_camera(void) {
 // a 0 if something goes wrong
 int camera_is_available(void) {
   return (trial_connect_to_camera() < 0 ? 0 : 1);
+}
+
+void camera_disconnect(void) {
+  ; // noop for NATIVE interface
 }
 
 // connect_to_camera() will establish a connection to the camera server
@@ -541,11 +549,6 @@ CCD_cooler_data(double *ambient_temp,
   }
 }
 
-
-#define NO_COMMAND 1
-#define MANUAL     2
-#define SETPOINT   3
-#define COOLER_OFF 4
 
 CoolerCommand::CoolerCommand(void) {
   mode = NO_COMMAND;
