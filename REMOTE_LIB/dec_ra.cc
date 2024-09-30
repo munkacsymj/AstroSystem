@@ -77,9 +77,9 @@ ToEpoch(DEC_RA &dec_ra, EPOCH from, EPOCH to) {
 
   const double new_dec = dec_ra.dec()+del_dec;
   double new_ra = dec_ra.ra_radians()+del_ra;
-  if (new_ra < 0.0) new_ra += 2*M_PI;
-  if (new_ra > 2*M_PI) new_ra -= 2*M_PI;
-  return DEC_RA(new_dec, new_ra);
+  DEC_RA answer(new_dec, new_ra);
+  answer.normalize();
+  return answer;
 }
 
 // Return a string holding the declination of a DEC_RA.  The string
