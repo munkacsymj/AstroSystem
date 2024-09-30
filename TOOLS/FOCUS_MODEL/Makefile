@@ -1,4 +1,4 @@
-TARGETS = offline test_circle_box find_match test_model graph_composite_profile analyze_composite sliding_focus_model test_blur image_to_csv 
+TARGETS = test_circle_box find_match test_model graph_composite_profile analyze_composite sliding_focus_model test_blur image_to_csv # offline
 
 OBJECTS = offline.o
 
