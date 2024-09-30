@@ -25,6 +25,9 @@
 #include <list>
 #include <unordered_map>
 
+#include "json.h"
+#include "scope_api.h"
+
 extern const char *CONFIG_FILE;
 
 enum SC_Optical_Configuration {SC_ST9_Meade10,
@@ -41,49 +44,50 @@ class SystemConfig {
  public:
   SystemConfig(void);
   ~SystemConfig(void);
-  void Update(void);		// The *only* way to update the config file
 
   // Quick tests
   bool IsSCT(void) const;
   bool IsQHY268M(void) const;
   bool IsST9(void) const;
+  bool IsST10(void) const;
+  bool IsAP1200(void) const;
   
   // Full Queries
   double EffectiveFocalLength(void) const;
   double FocalRatio(void) const;
   double PixelScale(void) const;	// arcseconds/pixel (unbinned)
-  double FocusSlope(void) const;	// focuser ticks/unit-change-in-focus
-  SC_Optical_Configuration GetOpticalConfiguration(void) const;
+  double FocusSlope(FocuserName which_focuser) const;	// focuser ticks/unit-change-in-focus
   std::string Telescope(void) const;
   std::string Camera(void) const;
   std::string Corrector(void) const;
-  std::string Focuser(void) const;
+  std::string Focuser(FocuserName which_focuser) const;
+  bool IsMovingReducer(void) const; // true if reducer moves with the focuser
   int NumFocusers(void) const;
   std::string FineFocuserName(void) const;
   std::string CoarseFocuserName(void) const;
 
-  // Allowable entries
-  std::list<std::string> &TelescopeChoices(void);
-  std::list<std::string> &CameraChoices(void);
-  std::list<std::string> &FocuserChoices(void);
-  std::list<std::string> &CorrectorChoices(void);
-
-  // Update values (return true if success)
-  bool SetEffectiveFocalLength(double efl);
-  bool SetTelescope(std::string telescope);
-  bool SetCamera(std::string camera);
-  bool SetFocuser(std::string focuser);
-  bool SetCorrector(std::string corrector);
-  bool SetFocusSlope(double slope);
-  bool SetPixelScale(double pixel_scale);
-  bool SetFocalRatio(double fratio);
+  double Latitude(void) const;	    // degrees
+  double Longitude(void) const;     // degrees, negative if west of prime meridian
+  double AverageSeeing(void) const; // arcseconds FWHM
+  double MirrorShift(void) const;   // arcminutes, typical
+  std::string ImageProfileFilename(void) const; // NOT full path; just filename
+  int CFWPositions(void) const;			// zero means no CFW available
+  std::string FixedFilter(void) const;		// valid only if CFWPositions() is zero
+  double PixelSize(void) const;			// microns
+  std::list<std::string> CFWFilters(void) const;
+  double FocuserMin(FocuserName which_focuser) const;
+  double FocuserMax(FocuserName which_focuser) const;
+  double FocuserTickMicrons(FocuserName which_focuser) const;
 
 private:
-  std::unordered_map<std::string, std::string> data;
-  bool SetString(std::string keyword, std::string value);
-  std::list<std::string> &GetChoices(std::string keyword);
-
-  bool RefreshUsingDefinedConfigs(void);
+  void BuildSynonymList(void);
+  std::unordered_map<std::string, std::string> synonyms;
+  std::unordered_map<std::string, JSON_Expression *> data;
+  JSON_Expression *al_exp {nullptr};
+  JSON_Expression *FindByName(std::string config_name);
+  bool RecursiveLoad(std::unordered_map<std::string, JSON_Expression *> *xref, std::string &config_name);
 };
+
+extern SystemConfig system_config;
   
 #endif

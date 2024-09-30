@@ -85,7 +85,7 @@ JSON_Expression::SyncWithFile(const char *pathname, int mode) {
     kill(0, SIGABRT);
   }
 
-  if (flock(json_fd, LOCK_EX)) {
+  if (mode != JSON_READONLY and flock(json_fd, LOCK_EX)) {
     perror("JSON_Expression: unable to lock file: ");
     kill(0, SIGABRT);
   }
@@ -684,6 +684,17 @@ JSON_Expression::GetAssignment(void) const {
   }
 
   return *assignment_expression;
+}
+
+JSON_Expression *
+JSON_Expression::GetAssignmentPtr(void) const {
+  if (not IsAssignment()) {
+    Print(stderr);
+    JSON_Abort("JSON::GetAssignment() type mismatch");
+    /*NOTREACHED*/
+  }
+
+  return assignment_expression;
 }
 
 std::list<JSON_Expression *> &

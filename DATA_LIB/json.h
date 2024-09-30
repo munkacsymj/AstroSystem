@@ -62,6 +62,7 @@ class JSON_Expression {
   const char *                 Value_char(void) const;
   const char *                 Assignment_variable(void) const;
   JSON_Expression &GetAssignment(void) const;
+  JSON_Expression *GetAssignmentPtr(void) const;
   
   std::list<JSON_Expression *> &Value_list(void);
   std::list<JSON_Expression *> &Value_seq(void);
