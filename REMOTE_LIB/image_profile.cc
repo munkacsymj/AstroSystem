@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <list>
 #include "image_profile.h"
+#include <system_config.h>
 
 int
 ImageProfile::GetInt(const char *keyword) {
@@ -59,23 +60,24 @@ ImageProfile::FindByKeyword(const char *keyword) {
 }
 
 JSON_Expression *ParseImageProfiles(void) {
-  const char *profile_filename = "/home/ASTRO/CURRENT_DATA/image_profiles.json";
-  int fd = open(profile_filename, O_RDONLY);
+  std::string profile_filename(system_config.ImageProfileFilename());
+  std::string profile_path("/home/ASTRO/CURRENT_DATA/" + profile_filename);
+  int fd = open(profile_path.c_str(), O_RDONLY);
   if (fd < 0) {
-    fprintf(stderr, "Unable to open %s\n", profile_filename);
+    fprintf(stderr, "Unable to open %s\n", profile_path.c_str());
     exit(-1);
   }
 
   struct stat statbuf;
-  if (stat(profile_filename, &statbuf)) {
+  if (stat(profile_path.c_str(), &statbuf)) {
     fprintf(stderr, "Unable to stat() image_profiles from %s\n",
-	    profile_filename);
+	    profile_path.c_str());
     return nullptr;
   } else {
     char *profile_contents = (char *) malloc(statbuf.st_size+1);
     if (read(fd, profile_contents, statbuf.st_size) != statbuf.st_size) {
       fprintf(stderr, "Error reading image_profiles from %s\n",
-	      profile_filename);
+	      profile_filename.c_str());
       exit(-1);
     }
     close(fd);
@@ -155,7 +157,7 @@ ImageProfile::ImageProfile(const char *profile_name, JSON_Expression *tree) {
       }
     }
   } else {
-    fprintf(stderr, "Invalid or missing content in profie %s\n",
+    fprintf(stderr, "Invalid or missing content in profile %s\n",
 	    profile_name);
     exit(-1);
   }
