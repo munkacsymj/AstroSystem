@@ -22,6 +22,7 @@
 
 #include "dec_ra.h"
 #include "julian.h"
+#include <string>
 
 // An "ALT_AZ" is an altitude/azimuth pair that locates something in
 // the local sky at a specific time.  The only way (right now) to
@@ -47,6 +48,7 @@ class ALT_AZ {
  private:
   double altitude;		// altitude in radians
   double azimuth;		// azimuth in radians, S=0, W=+, E=-
+  std::string ToString(void);
 };
 
 #endif
