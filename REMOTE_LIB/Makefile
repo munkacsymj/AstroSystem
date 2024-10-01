@@ -24,7 +24,7 @@ ifeq ($(INTERFACE),INDI)
   INTERFACE_DEF= -D INDI -D INTERFACE=INDI
   INTERFACE_FILES = astro_indi.o blocker_indi.o cfw_indi.o cooler_indi.o focuser_indi.o mount_indi.o \
 	scope_api_indi.o st10xme_indi.o camera_api_indi.o
-else ifeq($(INTERFACE),NATIVE)
+else ifeq ($(INTERFACE),NATIVE)
   INTERFACE_DEF= -D INTERFACE=NATIVE
   INTERFACE_FILES = scope_api.o camera_api.o
 else
@@ -97,10 +97,9 @@ list_image_profiles: list_image_profiles.o ./image_profile.o ../DATA_LIB/json.o
 
 
 ifeq ($(ASTRO_ENV),INSIDE)
-OPT_TARGETS = scope_api.o \
+OPT_TARGETS = \
 	$(MOUNT_TARGETS) \
 	image_notify.o \
-	camera_api.o \
 	visibility.o
 endif
 

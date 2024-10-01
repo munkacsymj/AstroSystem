@@ -60,7 +60,8 @@ ImageProfile::FindByKeyword(const char *keyword) {
 }
 
 JSON_Expression *ParseImageProfiles(void) {
-  std::string profile_filename(system_config.ImageProfileFilename());
+  SystemConfig config;
+  std::string profile_filename(config.ImageProfileFilename());
   std::string profile_path("/home/ASTRO/CURRENT_DATA/" + profile_filename);
   int fd = open(profile_path.c_str(), O_RDONLY);
   if (fd < 0) {

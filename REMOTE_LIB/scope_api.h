@@ -46,6 +46,10 @@ enum FocuserMoveType {FOCUSER_MOVE_ABSOLUTE,
 // connection (for whatever reason), it will print an error message to
 // stderr and will exit.
 void connect_to_scope(void);
+void connect_to_focuser(void);
+
+void disconnect_scope(void);	// needed for INDI
+void disconnect_focuser(void);	// needed for INDI
 
 // scope_focus() will run the focus motor (slow speed) for the
 // indicated number of msec.  Positive values move one way and
@@ -84,7 +88,9 @@ void WaitForGoToDone(void);
 // active. Works for both MoveTo() and SmallMove().
 bool SlewInProgress(void);
 
-// specifies time to guide in seconds
+// specifies time to guide in seconds (used by drifter)
+// To use this you need to know guide speed. That value is hardcoded
+// into drifter.cc (and should be fixed).
 void guide(double NorthSeconds, double EastSeconds);
 
 // set turn_off to 1 to disable tracking at the sidereal rate and stop
