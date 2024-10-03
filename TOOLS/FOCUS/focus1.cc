@@ -61,6 +61,7 @@ static int camera_is_busy = 0;
 
 static RunData run_data;
 
+extern bool fixed_slope;
 extern int inhibit_plotting;
 extern FocuserName focuser_to_use;
 extern FILE *logfile;
@@ -89,6 +90,8 @@ struct ResultSummary {
   int useful_on_high_side;
   int useful_on_low_side;
   int useful_near_focus;
+  double span_lowlim;  // bottom of best sampling zone
+  double span_highlim; // top of best sampling zone
 };
 
 struct ExposureRequest;
@@ -112,6 +115,7 @@ bool user_abort_requested(void) {
 }
 
 long set_focus(long encoder_to_set) {
+#if 0
   long current_encoder = CumFocusPosition(focuser_to_use);
   long delta_encoder = encoder_to_set - current_encoder;
   bool direction_change = (preferred_direction == DIRECTION_POSITIVE ?
@@ -131,6 +135,11 @@ long set_focus(long encoder_to_set) {
 				  FOCUSER_MOVE_ABSOLUTE,
 				  focuser_to_use);
   }
+#else
+  long current_encoder = scope_focus(encoder_to_set,
+				     FOCUSER_MOVE_ABSOLUTE,
+				     focuser_to_use);
+#endif
   return current_encoder;
 }
 
@@ -395,59 +404,57 @@ focus(Image *initial_image,
       Image *dark_image,
       Filter filter) {
 
-  if (config == nullptr) {
-    config = new SystemConfig;
-    if (not isnormal(config->PixelScale())) {
-      fprintf(stderr, "focus: pixel scale not found in SystemConfig. Can't focus.\n");
-      return;
-    }
-    
-    switch (config->GetOpticalConfiguration()) {
-    case SC_ST9_Meade10:
-      target_box_size = 72;
-      low_threshold = 2.0;
-      high_threshold = 8.0;
-      max_blur = 10;		// this is the biggest star that
-				// find_match will try
-      hyperbola_C = 64.0; break;
-
-    case SC_268M_Meade10:
-      target_box_size = 150; // must be divisible by 3
-      low_threshold = 10.0;
-      high_threshold = 30.0;
-      max_blur = 50;
-      hyperbola_C = 15.06; break;
-
-    case SC_ST9_C14_C63x:
-      target_box_size = 72; // must be divisible by 3
-      low_threshold = 2.0;
-      high_threshold = 8.0;
-      max_blur = 10;
-      hyperbola_C = 64*5.5/10.0; break;
-      
-    case SC_268M_C14_Starizona:
-      target_box_size = 180;
-      low_threshold = 10.0;
-      high_threshold = 30.0;
-      max_blur = 50;
-      hyperbola_C = 290.0*(3.9/20.0);
-      break;
-
-    case SC_ST9_C14_Starizona:
-      target_box_size = 90; // must be divisible by 3
-      low_threshold = 2.0;
-      high_threshold = 8.0;
-      max_blur = 10;
-      hyperbola_C = 262.8; break;
-      
-    case SC_NONSTANDARD:
-    default:
-      fprintf(stderr, "focus: SystemConfig not recognized. Can't focus.\n");
-      return;
-    }
+  if (not isnormal(system_config.PixelScale())) {
+    fprintf(stderr, "focus: pixel scale not found in SystemConfig. Can't focus.\n");
+    return;
   }
 
-  if (focuser_to_use == FOCUSER_COARSE) {
+#if 0
+  switch (config->GetOpticalConfiguration()) {
+  case SC_ST9_Meade10:
+    target_box_size = 72;
+    low_threshold = 2.0;
+    high_threshold = 8.0;
+    max_blur = 10;		// this is the biggest star that
+				// find_match will try
+    hyperbola_C = 64.0; break;
+
+  case SC_268M_Meade10:
+    target_box_size = 150; // must be divisible by 3
+    low_threshold = 10.0;
+    high_threshold = 30.0;
+    max_blur = 50;
+    hyperbola_C = 15.06; break;
+
+  case SC_ST9_C14_C63x:
+    target_box_size = 72; // must be divisible by 3
+    low_threshold = 2.0;
+    high_threshold = 8.0;
+    max_blur = 10;
+    hyperbola_C = 64*5.5/10.0; break;
+      
+  case SC_268M_C14_Starizona:
+    target_box_size = 180;
+    low_threshold = 10.0;
+    high_threshold = 30.0;
+    max_blur = 50;
+    hyperbola_C = 290.0*(3.9/20.0);
+    break;
+
+  case SC_ST9_C14_Starizona:
+    target_box_size = 90; // must be divisible by 3
+    low_threshold = 2.0;
+    high_threshold = 8.0;
+    max_blur = 10;
+    hyperbola_C = 262.8; break;
+      
+  case SC_NONSTANDARD:
+  default:
+    fprintf(stderr, "focus: SystemConfig not recognized. Can't focus.\n");
+    return;
+  }
+
+  if (focuser_to_use != FOCUSER_COARSE) {
     hyperbola_C *= 120.3;
     MIN_TRAVEL = 0;
     MAX_TRAVEL = 439000;
@@ -456,7 +463,36 @@ focus(Image *initial_image,
   } else {
     target_box_size *= 3;
   }
-  
+
+#else
+  {
+    //double pixel_size = system_config.PixelSize();   // microns
+    double pixel_scale = system_config.PixelScale(); // arcsec/pixel
+    double default_star_size = system_config.AverageSeeing()/pixel_scale; // pixels
+    low_threshold = 0.85*default_star_size;
+    high_threshold = low_threshold * 3.5;
+    max_blur = low_threshold * 5;
+    double mirror_flop = system_config.MirrorShift();
+    target_box_size = 0.35*(mirror_flop*60 + max_blur)/pixel_scale;
+    MIN_TRAVEL = system_config.FocuserMin(focuser_to_use);
+    MAX_TRAVEL = system_config.FocuserMax(focuser_to_use);
+    MIN_SOLUTION = MIN_TRAVEL + (0.01*(MAX_TRAVEL-MIN_TRAVEL));
+    MAX_SOLUTION = MAX_TRAVEL - (0.01*(MAX_TRAVEL-MIN_TRAVEL));
+    //hyperbola_C = 2*system_config.FocalRatio()/pixel_scale;
+    hyperbola_C = system_config.FocusSlope(focuser_to_use);
+
+    fprintf(stdout, "Pixel scale = %.3lf\n", pixel_scale);
+    fprintf(stdout, "Low/High blur thresholds = %.1lf / %.1lf\n",
+	    low_threshold, high_threshold);
+    fprintf(stdout, "Target box size = %d x %d\n",
+	    target_box_size, target_box_size);
+    fprintf(stdout, "Min/Max travel limits = %.0d / %.0d\n",
+	    MIN_TRAVEL, MAX_TRAVEL);
+    fprintf(stdout, "hyperbola_C = %.2lf\n", hyperbola_C);
+  }
+    
+#endif
+
   // get rid of any pre-existing result (param) file
   (void) unlink(PARAM_FILE_PATH);
 
@@ -499,11 +535,21 @@ focus(Image *initial_image,
 	  box_left, box_right, box_top, box_bottom);
 
   // Create initial population of requests
-  const double span = max_blur*hyperbola_C;
+  //
+  double span = 2*low_threshold*hyperbola_C;
+  //const double span = max_blur*hyperbola_C;
+  double low_ticks = good_focus - span/2;
+  double high_ticks = good_focus + span/2;
+
+  if (low_ticks < MIN_TRAVEL) low_ticks = MIN_TRAVEL;
+  if (high_ticks > MAX_TRAVEL) high_ticks = MAX_TRAVEL;
+  span = high_ticks - low_ticks;
+
   const static int NUM_STEPS = 11; // best kept odd
   const int delta = (int) (0.5 + span/NUM_STEPS);
   for (int i=0; i<NUM_STEPS; i++) {
     const int target_focus = good_focus + (i-NUM_STEPS/2)*delta;
+    assert(target_focus >= MIN_TRAVEL and target_focus <= MAX_TRAVEL);
     ExposureRequest *r = new ExposureRequest;
     r->quantity = 1;
     r->focus_encoder = target_focus;
@@ -519,6 +565,7 @@ focus(Image *initial_image,
   do {
     ResultSummary results;
     
+    // "current_estimate" will be set if a hyperbola was found.
     FetchAndProcessExposures(&good_focus);
 
     if (user_abort_requested() || user_aborted) {
@@ -531,25 +578,52 @@ focus(Image *initial_image,
 
     // Need stuff
     bool ready_to_quit = true; // might not be true
+    bool too_close_to_edge = false;
     if (results.useful_on_low_side < 3) {
-      create_requests(3 - results.useful_on_low_side,
-		      good_focus - (max_blur/2)*hyperbola_C,
-		      good_focus - 2*hyperbola_C);
-      ready_to_quit = false;
+      double candidate_highticks = good_focus - 2*hyperbola_C;
+      if (candidate_highticks > MAX_TRAVEL) candidate_highticks = MAX_TRAVEL;
+      double span = candidate_highticks - results.span_lowlim;
+      if (span < 5) {
+	too_close_to_edge = true;
+      } else {
+	create_requests(3 - results.useful_on_low_side,
+			results.span_lowlim,
+			candidate_highticks);
+	ready_to_quit = false;
+      }
     }
     if (results.useful_on_high_side < 3) {
-      create_requests(3 - results.useful_on_high_side,
-		      good_focus + 2*hyperbola_C,
-		      good_focus + (max_blur/2)*hyperbola_C);
-      ready_to_quit = false;
+      double candidate_lowticks = good_focus + 2*hyperbola_C;
+      if (candidate_lowticks < MIN_TRAVEL) candidate_lowticks = MIN_TRAVEL;
+      double span = results.span_highlim - candidate_lowticks;
+      if (span < 5) {
+	too_close_to_edge = true;
+      } else {
+	create_requests(3 - results.useful_on_high_side,
+			candidate_lowticks,
+			results.span_highlim);
+	ready_to_quit = false;
+      }
     }
     if (results.useful_near_focus < 3) {
+      double candidate_highticks = good_focus - 2*hyperbola_C;
+      if (candidate_highticks > MAX_TRAVEL) candidate_highticks = MAX_TRAVEL;
+      double candidate_lowticks = good_focus + 2*hyperbola_C;
+      if (candidate_lowticks < MIN_TRAVEL) candidate_lowticks = MIN_TRAVEL;
+      
       create_requests(3 - results.useful_near_focus,
-		      good_focus - 2*hyperbola_C,
-		      good_focus + 2*hyperbola_C);
+		      candidate_lowticks, candidate_highticks);
       ready_to_quit = false;
     }
 
+    if (too_close_to_edge) {
+      fprintf(stderr, "Too close to focuser limit. Terminating.\n");
+      fprintf(stderr, "Resetting focus ack to %ld\n",
+	      initial_encoder);
+      long final_focus = set_focus(initial_encoder);
+      fprintf(stderr, "Focus set to %ld\n", final_focus);
+      break;
+    }
     if (ready_to_quit) {
       //good_focus = DoFineFocus(good_focus);
       
@@ -591,7 +665,7 @@ focus(Image *initial_image,
     }
   } // end of printing loop
 
-  // tell the exposure thread to quit
+    // tell the exposure thread to quit
   ExposureRequest r_quit;
   r_quit.quantity = -1; // the signal to quit
   ScheduleExposure(&r_quit);
@@ -648,7 +722,11 @@ focus(double exposure_time_val,
   }
 
   Hyperbola h(initial_encoder);
-  h.SetC(hyperbola_C);
+  if (/*extern*/ fixed_slope) {
+    h.SetC(hyperbola_C);
+  } else {
+    h.SetC(-1);
+  }
   h.reset(initial_encoder);
   double best_guess;
   if ((best_guess = h.Solve(&run_data)) < 0.0) {
@@ -672,6 +750,7 @@ focus(double exposure_time_val,
 	      exposure_time_val);
   }
 
+  const double final_slope = h.GetC();
   h.reset();
 
   FILE *param = fopen(PARAM_FILE_PATH, "w");
@@ -684,6 +763,7 @@ focus(double exposure_time_val,
     fprintf(stderr, "focus: final prediction is %lf\n", best_guess);
     set_focus((long) best_guess);
     fprintf(param, "Focus = %d\n", (int) (best_guess + 0.5));
+    fprintf(stderr, "focus: final slope is %lf\n", final_slope);
   }
   fclose(param);
   return 0;
@@ -842,7 +922,13 @@ void FetchAndProcessExposures(double *current_estimate) {
   double next_guess = h.state_var[HYPER_R];
   if (h.NoSolution()) {
     fprintf(stderr, "focus: hyperbola failed. Randomly adding a point.\n");
-    create_requests(1, (*current_estimate)-100, (*current_estimate)+100);
+    if (*current_estimate + 100 > MAX_TRAVEL) {
+      create_requests(1, MAX_TRAVEL - 200, MAX_TRAVEL);
+    } else if (*current_estimate - 100 < MIN_TRAVEL) {
+      create_requests(1, MIN_TRAVEL, MIN_TRAVEL + 200);
+    } else {
+      create_requests(1, (*current_estimate)-100, (*current_estimate)+100);
+    }
   } else {
     // hyperbola converged
     fprintf(stderr, "focus: updated focus prediction = %lf\n",
@@ -982,6 +1068,8 @@ bool add_image(CompositeImage *composite_image,
 }
   
 void create_requests(int num_requests, int low_limit, int high_limit) {
+  assert(low_limit >= MIN_TRAVEL);
+  assert(high_limit <= MAX_TRAVEL);
 #if 0
   if (low_limit < MIN_TRAVEL) low_limit = MIN_TRAVEL;
   if (high_limit > MAX_TRAVEL) high_limit = MAX_TRAVEL;
@@ -1043,6 +1131,18 @@ void assess_results(ResultSummary *results, double focus_estimate) {
       results->number_bad++;
     }
   }
+
+  double span = 2*low_threshold*hyperbola_C;
+  //const double span = max_blur*hyperbola_C;
+  double low_ticks = focus_estimate - span/2;
+  double high_ticks = focus_estimate + span/2;
+
+  if (low_ticks < MIN_TRAVEL) low_ticks = MIN_TRAVEL;
+  if (high_ticks > MAX_TRAVEL) high_ticks = MAX_TRAVEL;
+  span = high_ticks - low_ticks;
+  results->span_lowlim = low_ticks;
+  results->span_highlim = high_ticks;
+
   fprintf(stderr, "assess_results: %d good on low, %d good on high, %d good near focus, %d bad\n",
 	  results->useful_on_low_side,
 	  results->useful_on_high_side,

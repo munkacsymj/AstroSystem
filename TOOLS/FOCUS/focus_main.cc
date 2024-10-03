@@ -39,13 +39,20 @@
 // -n                           // no auto-find, trust initial position
 // -D session_dir               // directory for session files
 // -x UP | DOWN                 // specify prefered direction
-// -F C | F                     // specify the focuser (coarse, fine)
+// -F C | F                     // specify the focuser to use (coarse, fine)
+// -3                           // curve-fit with 3 degrees of freedom (incl slope)
 
 int inhibit_plotting = 0;
 int preferred_direction = DIRECTION_POSITIVE;
 FocuserName focuser_to_use = FOCUSER_DEFAULT;
+bool fixed_slope {true};	// override with the -3 command line arg
 
 FILE *logfile = stdout;
+
+static void Terminate(void) {
+  DisconnectINDI();
+  exit(-2);
+}
 
 void usage(void) {
   fprintf(stderr, "usage: focus <options>\n");
@@ -60,7 +67,8 @@ void usage(void) {
   fprintf(stderr, "    -n     [no auto-find, trust initial position]\n");
   fprintf(stderr, "    -D session_dir\n");
   fprintf(stderr, "    -x UP | DOWN    [preferred direction]\n");
-  fprintf(stderr, "    -F C | F [focuser:coarse or fine]\n");
+  fprintf(stderr, "    -F C | F [focuser to use]\n");
+  fprintf(stderr, "    -3     [search for best slope]\n");
   exit(-2);
 }
 
@@ -76,8 +84,12 @@ int main(int argc, char **argv) {
   Filter filter("Vc");		// default filter is the V filter
   const char *session_dir = 0;
 
-  while((ch = getopt(argc, argv, "F:D:apx:nzs:d:t:f:l:")) != -1) {
+  while((ch = getopt(argc, argv, "3F:D:apx:nzs:d:t:f:l:")) != -1) {
     switch(ch) {
+    case '3':
+      fixed_slope = false;
+      break;
+
     case 'F':
       if (strcmp(optarg, "C") == 0 or strcmp(optarg, "c") == 0) {
 	focuser_to_use = FOCUSER_COARSE;
@@ -162,6 +174,9 @@ int main(int argc, char **argv) {
   connect_to_camera();
   connect_to_scope();
 
+  if (not fixed_slope) {
+    fprintf(stderr, "Hyperbola fit with 3 degrees of freedom, including slope.\n");
+  }
   if (best_guess == 0) {
     best_guess = scope_focus(0, FOCUSER_MOVE_RELATIVE, focuser_to_use);
     fprintf(stderr, "No [-s best_guess] option, so using current focuser position: %ld\n",
@@ -175,7 +190,7 @@ int main(int argc, char **argv) {
   if (auto_focus_star_select) {
     if (session_dir == 0 || *session_dir == 0) {
       fprintf(stderr, "focus: -a requires [-D session_dir]\n");
-      exit(-2);
+      Terminate();
     }
     initial_image = find_focus_star(no_auto_find, logfile, 30.0 /*seconds*/, session_dir);
     initial_image = 0; // go ahead and allow another exposure
@@ -192,4 +207,6 @@ int main(int argc, char **argv) {
   fflush(logfile);
 
 
+  DisconnectINDI();
+  return 0;
 }

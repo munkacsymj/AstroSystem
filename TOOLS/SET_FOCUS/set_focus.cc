@@ -38,6 +38,7 @@ void scope_error(char *response, ScopeResponseStatus Status) {
 void usage(void) {
   fprintf (stderr, "usage: set_focus [-F C|F] [-h | -t [+-]nnn] | -a [+=]nnn\n");
   fprintf (stderr, "     (nnn in msec)\n");
+  DisconnectINDI();
   exit(-2);
 }
 
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
   FocuserName selected_focuser = FOCUSER_FINE;
   bool move_absolute = false;
 
-  connect_to_scope();
+  connect_to_focuser();
 
   while((option_char = getopt(argc, argv, "a:hF:t:")) > 0) {
     switch (option_char) {
@@ -87,6 +88,7 @@ int main(int argc, char **argv) {
     } else {
       fprintf(stderr, "set_focus: ERROR: focuser name %s isn't C (coarse) or F (fine)\n",
 	      focuser_name);
+      DisconnectINDI();
       exit(-2);
     }
   }
@@ -116,5 +118,9 @@ int main(int argc, char **argv) {
 	  CumFocusPosition(FOCUSER_COARSE),
 	  CumFocusPosition(FOCUSER_FINE));
   }
+
+  fprintf(stderr, "Focuser limit (system_config) is %.0lf\n",
+	  system_config.FocuserMax(FOCUSER_FINE));
+  DisconnectINDI();
   return 0;
 }

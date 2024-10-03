@@ -24,5 +24,6 @@ int main(int argc, char **argv) {
   connect_to_scope();
 
   UnParkTelescope();
+  DisconnectINDI();
   return 0;
 }

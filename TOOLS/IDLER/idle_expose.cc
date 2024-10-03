@@ -41,6 +41,7 @@ int main(int argc, char **argv) {
     (void) expose_image(10.0, flags, "IDLE");
   }
 
+  DisconnectINDI();
   return 0;
 }
     

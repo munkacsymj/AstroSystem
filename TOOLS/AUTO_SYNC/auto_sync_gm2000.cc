@@ -76,6 +76,11 @@ struct OneAlignmentStar {
 typedef list<OneAlignmentStar *> lsl; // local_star_list
 lsl stars;
 
+static void Terminate(void) {
+  DisconnectINDI();
+  exit(-2);
+}
+
 void GetStats(AlignmentStats *stats) {
   stats->num_stars =
     stats->num_align_points =
@@ -186,7 +191,7 @@ OneAlignmentStar *pick_first_star(void) {
   }
   if (!pick) {
     fprintf(stderr, "error: pick_first_star() failed.\n");
-    exit(-2);
+    Terminate();
   }
   return pick;
 }
@@ -796,17 +801,17 @@ void PerformBaseAlignment(void) {
       IStarList *list = finder->GetIStarList();
       if(list->NumStars == 0) {
 	fprintf(stderr, "No stars found in image.\n");
-	exit(-2);
+	Terminate();
       } else if(list->NumStars <= 2) {
 	// too few stars
 	fprintf(stderr, "Finder for %s: only %d stars seen.",
 		triplet->stars[i]->lookup_name, list->NumStars);
-	exit(-2);
+	Terminate();
       } else {
 	// otherwise, it just couldn't find a match. Tough.
 	fprintf(stderr, "Finder for %s: couldn't match.",
 		triplet->stars[i]->lookup_name);
-	exit(-2);
+	Terminate();
       }
     }
   } // end loop over all three points
@@ -939,4 +944,6 @@ int main(int argc, char **argv) {
   if (load_syncfile) {
     recalculate_model(0);
   }
+  DisconnectINDI();
+  return 0;
 }

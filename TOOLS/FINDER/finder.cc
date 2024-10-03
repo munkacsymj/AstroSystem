@@ -38,13 +38,17 @@ void scope_error(char *response, ScopeResponseStatus Status) {
 int main(int argc, char **argv) {
   double exposure_time = 10.0;
   int option_char;
+  double sensitivity = 0.0;
   char *starname = 0;
   DEC_RA commanded_pos;
-
-  while((option_char = getopt(argc, argv, "n:t:")) > 0) {
+  while((option_char = getopt(argc, argv, "q:n:t:")) > 0) {
     switch (option_char) {
     case 'n':
       starname = optarg;
+      break;
+
+    case 'q':
+      sensitivity = atof(optarg);
       break;
 
     case 't':
@@ -66,8 +70,62 @@ int main(int argc, char **argv) {
     }
 
     commanded_pos = named_star.Location();
+  } else {
+    fprintf(stderr, "Usage: finder -n starname [-t exp_time] [optional_offsets]\n");
+    exit(2);
   }
 
+  argc -= optind;
+  argv += optind;
+  if(argc >= 1) {
+    double north_delta = 0.0;
+    double east_delta = 0.0;
+    while(argc) {
+      argc--;
+      char last_letter;
+      const int len = strlen(argv[argc]);
+      char *last_letter_ptr = argv[argc] + (len-1);
+
+      last_letter = *last_letter_ptr;
+      *last_letter_ptr = 0;
+
+      double converted_value = atof(argv[argc]);
+
+      fprintf(stderr, "letter = '%c', val=%.2f\n",
+	      last_letter, converted_value);
+
+      switch(last_letter) {
+      case 'n':
+      case 'N':
+	north_delta = converted_value;
+	break;
+
+      case 's':
+      case 'S':
+	north_delta = -converted_value;
+	break;
+
+      case 'e':
+      case 'E':
+	east_delta = converted_value;
+	break;
+
+      case 'w':
+      case 'W':
+	east_delta = -converted_value;
+	break;
+
+      default:
+	fprintf(stderr, "Motion must end with one of N, S, E, or W\n");
+	exit(2);
+      }
+    }
+
+    north_delta *= ((2.0 * M_PI)/360.0)/60.0;
+    east_delta  *= ((2.0 * M_PI)/360.0)/60.0;
+    commanded_pos.increment(north_delta, east_delta);
+  }
+  
   connect_to_scope();
   connect_to_camera();
 
@@ -81,9 +139,6 @@ int main(int argc, char **argv) {
   DEC_RA raw_mount_points_at;
   const char *image_filename;
 
-  SystemConfig config;
-  const bool camera_ST9 = config.IsST9();
-
   finder_flags.SetFilter(Vc_Filter);
 
   MoveTo(&commanded_pos, 1 /*ENCOURAGE_FLIP*/);
@@ -94,13 +149,6 @@ int main(int argc, char **argv) {
   // outer loop is trying to zero in on correct position
   // inner loop is just trying to get an image that we can correlate
 
-  if (camera_ST9) {
-    finder_flags.subframe.box_bottom = 0;
-    finder_flags.subframe.box_top = 511;
-    finder_flags.subframe.box_left = 0;
-    finder_flags.subframe.box_right = 511;
-  }
-  
   do { // loop counting by "move_tries"
     Image *finder = 0;
     
@@ -117,7 +165,12 @@ int main(int argc, char **argv) {
       close(mkstemp(parameter_filename));
       {
 	char command_buffer[256];
-	sprintf(command_buffer, COMMAND_DIR "/find_stars -i %s", image_filename);
+	char arg_buffer[64] {""};
+	if (sensitivity > 0.0) {
+	  sprintf(arg_buffer, " -q %.1lf ", sensitivity);
+	}
+	
+	sprintf(command_buffer, COMMAND_DIR "/find_stars %s -i %s", arg_buffer, image_filename);
 	if(system(command_buffer) == -1) {
 	  perror("Unable to execute find_stars command");
 	} else {
@@ -175,7 +228,7 @@ int main(int argc, char **argv) {
     // satisfied. Then we'll do the bad_pixel adjustment to the
     // target center, and repeat.
 
-    //bool force_move = false;
+    bool force_move = false;
     double delta_dec, delta_ra, delta_ra_arcsec; // both in radians
 
     delta_dec = pointing_target.dec() - current_center.dec();
@@ -190,6 +243,8 @@ int main(int argc, char **argv) {
     if (!initial_pointing_okay) {
       if (within_tolerance) {
 	initial_pointing_okay = true;
+      } else {
+	force_move = true;
       }
     }
 
@@ -198,7 +253,7 @@ int main(int argc, char **argv) {
       finder = 0;
     }
 
-    if(within_tolerance) {
+    if(within_tolerance and not force_move) {
       // good enough.
       goto finished;
     } else {
@@ -221,6 +276,7 @@ int main(int argc, char **argv) {
   }  while(move_tries < 4); // should never trip on this
 
 finished:
+  DisconnectINDI();
   return 0;
 }
 

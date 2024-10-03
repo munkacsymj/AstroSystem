@@ -24,6 +24,11 @@
 #include <bright_star.h>
 #include "scope_api.h"
 
+static void Terminate(void) {
+  DisconnectINDI();
+  exit(-2);
+}
+
 void scope_error(char *response, ScopeResponseStatus Status) {
   const char *type = "";
 
@@ -76,7 +81,7 @@ int main(int argc, char **argv) {
       case '?':			// invalid argument
       default:
 	fprintf(stderr, "Invalid argument.\n");
-	exit(2);
+	Terminate();
       }
     }
 
@@ -84,19 +89,19 @@ int main(int argc, char **argv) {
       NamedStar named_star(starname);
       if(!named_star.IsKnown()) {
 	fprintf(stderr, "Don't know of star named '%s'\n", starname);
-	exit(2);
+	Terminate();
       }
 
       commanded_pos = named_star.Location();
     } else {
       if(argc != 3) {
 	fprintf(stderr, "usage: goto -dd:mm.m hh:mm:ss\n");
-	exit(2);
+	Terminate();
       }
       commanded_pos = DEC_RA(argv[1], argv[2], conversion_status);
       if(conversion_status != STATUS_OK) {
 	fprintf(stderr, "goto: arguments wouldn't parse.\n");
-	exit(2);
+	Terminate();
       }
     }
   }
@@ -133,6 +138,7 @@ int main(int argc, char **argv) {
   printf("Final scope position:\nRA= %s\nDEC= %s\n",
 	 final_pos.string_ra_of(),
 	 final_pos.string_dec_of());
+  DisconnectINDI();
   return 0;
 }
   
@@ -174,5 +180,7 @@ DEC_RA find_focus_star(void) {
   }
   // Bad news. Nothing found.
   fprintf(stderr, "goto: no focus stars found.!?\n");
-  exit(2);
+  Terminate();
+  /*NOTREACHED*/
+  return DEC_RA(0,0);
 }

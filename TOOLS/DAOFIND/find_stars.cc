@@ -164,9 +164,15 @@ int main(int argc, char **argv) {
 
     {
       if (image.height > 512 or image.width > 512) {
-	Image *alt_image = image.CreateSubImage(image.height/2 - 256,
-						image.width/2 - 256,
-						512, 512);
+	int subheight = 512;
+	int subwidth = 512;
+	if (image.height < 512) subheight = image.height;
+	if (image.width < 512) subwidth = image.width;
+	const int center_x = image.width/2;
+	const int center_y = image.height/2;
+	Image *alt_image = image.CreateSubImage(center_y - subheight/2,
+						center_x - subwidth/2,
+						subheight, subwidth);
 	rp.median = alt_image->statistics()->MedianPixel;
       } else {
 	rp.median = image.statistics()->MedianPixel;
@@ -210,7 +216,7 @@ int main(int argc, char **argv) {
     rp.theta = 0.0;		// N/A, since stars are circular
     rp.nsigma = 1.5;
     rp.readnoise = 13.0;
-    rp.sharplo = 0.3;
+    rp.sharplo = 0.2;
     rp.sharphi = 1.0;
     rp.roundlo = -2.5;
     rp.roundhi = 2.5;
@@ -295,12 +301,10 @@ int main(int argc, char **argv) {
       fprintf(stderr, "find_stars: found %d stars using daofind\n",
 	      newlist.NumStars);
 
-#if 0
       if(image.GetImageInfo() &&
 	 image.GetImageInfo()->RotationAngleValid()) {
 	newlist.ImageRotationAngle = image.GetImageInfo()->GetRotationAngle();
       }
-#endif
 
       newlist.SaveIntoFITSFile(image_filename, 1);
     }

@@ -286,6 +286,7 @@ int main(int argc, char **argv) {
 	    DateToDirname());
     if (system(command) < 0) {
       fprintf(stderr, "Error invoking dark_manager command.\n");
+      DisconnectINDI();
       exit(-1);
     } 
     char dark_file_name[256];
@@ -342,5 +343,6 @@ int main(int argc, char **argv) {
   fprintf(stderr, "%d fields exposed\n", num_fields_exposed);
   fprintf(stderr, "%d fields solved\n", num_fields_solved);
 
+  DisconnectINDI();
   return 0;
 }

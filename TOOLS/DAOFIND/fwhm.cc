@@ -244,8 +244,8 @@ void *thread_measure_fwhm(void *raw_data) {
 		   FIT(PARAM_A) > 0.0 and
 		   FIT(PARAM_2SIGXX) > 0.5 and
 		   FIT(PARAM_2SIGYY) > 0.5 and
-		   FIT(PARAM_2SIGXX) < 150.0 and
-		   FIT(PARAM_2SIGYY) < 150.0);
+		   FIT(PARAM_2SIGXX) < 50.0 and
+		   FIT(PARAM_2SIGYY) < 50.0);
     //fprintf(stderr, "star->valid = %s\n", star->valid ? "true" : "false");
 
     if (star->valid) {

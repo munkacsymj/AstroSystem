@@ -30,9 +30,9 @@ def thread_function(thread_name):
     global num_curves, curve_avail
     while True:
         try:
-            print ("...thread waiting for data\n")
+            #print ("...thread waiting for data\n")
             newline = input()
-            print ("...received string ", newline, '\n')
+            #print ("...received string ", newline, '\n')
 
         except EOFError:
             break
@@ -40,7 +40,7 @@ def thread_function(thread_name):
         all_words = newline.split()
         keyword = all_words[0]
 
-        print ("keyword = ", keyword)
+        #print ("keyword = ", keyword)
 
         if keyword == "point":
             x_value = float(all_words[1])
@@ -70,7 +70,7 @@ def do_plot_curve():
     global param_a, param_b, param_r
     global curve_avail
 
-    print("curve_avail = ", curve_avail)
+    #print("curve_avail = ", curve_avail)
     if not curve_avail:
         return
     
@@ -82,7 +82,7 @@ def do_plot_curve():
     if curve_is_showing:
         hyp.remove()
 
-    print("Adding curve plot.")
+    #print("Adding curve plot.")
     hyp, = plt.plot(focus_settings, hyperbola(focus_settings, param_a, param_b, param_r))
     curve_is_showing = True
     #plt.ion()
@@ -117,7 +117,7 @@ def animate(i):
     global num_curves
     if len(all_x) > prior_points:
         prior_points = len(all_x)
-        print("animate(): generating new plot.")
+        #print("animate(): generating new plot.")
         MakePlot()
     #print("prior_curves = ", prior_curves, ", num_curves = ", num_curves)
     if prior_curves < num_curves:
@@ -126,7 +126,7 @@ def animate(i):
         do_plot_curve()
 
 #MakePlot()
-ani = FuncAnimation(plt.gcf(), animate, interval=200)
+ani = FuncAnimation(plt.gcf(), animate, interval=2000)
 t = threading.Thread(target=thread_function, args=(1,))
 t.start()
 

@@ -100,6 +100,10 @@ void scale_change_cb(GtkWidget *source, gpointer data);
 extern "C"
 void image_click_cb(GtkWidget *main, GdkEvent *event, gpointer user_data);
 
+static void Terminate(void) {
+  DisconnectINDI();
+  exit(-2);
+}
 
 void SetupWidgetsPart1(GtkBuilder *builder) {
   Widgets.topwindow = GTK_WIDGET(gtk_builder_get_object(builder, "topwindow"));
@@ -250,11 +254,11 @@ gboolean deliver_signal(GIOChannel *source, GIOCondition cond, gpointer d)
   // potential errors and return from the callback.
   if(error != NULL){
     fprintf(stderr, "reading signal pipe failed: %s\n", error->message);
-    exit(1);
+    Terminate();
   }
   if(status == G_IO_STATUS_EOF){
     fprintf(stderr, "signal pipe has been closed\n");
-    exit(1);
+    Terminate();
   }
 
   g_assert(status == G_IO_STATUS_AGAIN);
@@ -309,7 +313,7 @@ int main(int argc, char **argv) {
   // First create a pipe.
   if(pipe(signal_pipe)) {
     perror("pipe");
-    exit(1);
+    Terminate();
   }
 
   // put the write end of the pipe into nonblocking mode,
@@ -317,11 +321,11 @@ int main(int argc, char **argv) {
   int fd_flags = fcntl(signal_pipe[1], F_GETFL);
   if(fd_flags == -1) {
       perror("read descriptor flags");
-      exit(1);
+      Terminate();
   }
   if(fcntl(signal_pipe[1], F_SETFL, fd_flags | O_NONBLOCK) == -1) {
     perror("write descriptor flags");
-    exit(1);
+    Terminate();
   }
 
   /* convert the reading end of the pipe into a GIOChannel */
@@ -334,7 +338,7 @@ int main(int argc, char **argv) {
   if(error != NULL) {		// handle potential errors 
     fprintf(stderr, "g_io_channel_set_encoding failed %s\n",
 	    error->message);
-    exit(1);
+    Terminate();
   }
 
   // put the reading end also into non-blocking mode 
@@ -345,7 +349,7 @@ int main(int argc, char **argv) {
   if(error != NULL) {		/* tread errors */
     fprintf(stderr, "g_io_set_flags failed %s\n",
 	    error->message);
-    exit(1);
+    Terminate();
   }
 
   /* register the reading end with the event loop */
@@ -356,6 +360,7 @@ int main(int argc, char **argv) {
 
   gtk_main();
   request_thread_quit = true;
+  DisconnectINDI();
   return 0;
 }
 
@@ -835,26 +840,40 @@ void DrawOverlayGraphics(void) {
     //fprintf(stderr, "DrawOverlayGraphics(Grid = true)\n");
     // draw grid
     cairo_t *cr = cairo_create(Widgets.main_gpixbuf);
-    cairo_set_source_rgba(cr, 1, 1, 0, 1); // yellow
     cairo_set_line_width(cr, 1.0);
-    const int width = Settings.raw_image->width;
-    const int height = Settings.raw_image->height;
+    const int width = Settings.raw_image->width/Settings.main_scaling;
+    const int height = Settings.raw_image->height/Settings.main_scaling;
     const double mid_x = width/2.0;
     const double mid_y = height/2.0;
-    
+
+    int line_num = 0;
     for (double x=0; x<mid_x; x += Settings.pixels_per_arcmin) {
+      if (line_num++ % 5 == 0) {
+	cairo_set_source_rgba(cr, 1, 0.65, 0, 1); // orange
+      } else {
+	cairo_set_source_rgba(cr, 0.85, 1, 0, 1); // yellow
+      }	
       cairo_move_to(cr, mid_x+x, 0);
       cairo_rel_line_to(cr, 0, height);
       cairo_move_to(cr, mid_x-x, 0);
       cairo_rel_line_to(cr, 0, height);
+      cairo_stroke(cr);
     }
+    line_num = 0;
     for (double y=0; y<mid_y; y += Settings.pixels_per_arcmin) {
+      if (line_num++ % 5 == 0) {
+	cairo_set_source_rgba(cr, 1, 0.65, 0, 1); // orange
+      } else {
+	cairo_set_source_rgba(cr, 0.85, 1, 0, 1); // yellow
+      }	
       cairo_move_to(cr, 0, mid_y+y);
       cairo_rel_line_to(cr, width, 0);
       cairo_move_to(cr, 0, mid_y-y);
       cairo_rel_line_to(cr, width, 0);
+      cairo_stroke(cr);
     }
     const double del_rect = 6.0;
+    cairo_set_source_rgba(cr, 1, 0.65, 0, 1); // orange
     cairo_rectangle(cr,
 		    mid_x-del_rect, mid_y-del_rect,
 		    del_rect*2, del_rect*2);
@@ -884,6 +903,7 @@ int CoolerTimeout(void *user_data) {
 }
 
 void *CoolerThread(void *user_data) {
+  connect_to_camera();
   if (not camera_is_available()) pthread_exit(0);
 
   while(not request_thread_quit) {

@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
     if(!command) usage();
   }
 
+  connect_to_camera();
+
   double cmd_temp;
   double cmd_power;
   CoolerCommand outbound_cmd;
@@ -122,6 +124,7 @@ int main(int argc, char **argv) {
     do_startup(perform_adjust);
     break;
   }
+  DisconnectINDI();
   return 0;
 }
     

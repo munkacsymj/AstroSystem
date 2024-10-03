@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   int box_right = -1;
   int box_left = -1;
   const char *purpose = nullptr;
-  const char *profile = nullptr;
+  const char *profile = "default";
   const char *filter = "";
   char output_file[256];
   double exposure_time_val = 0.0;
@@ -312,11 +312,13 @@ int main(int argc, char **argv) {
   // now do the dirty deed.  Make an exposure
   fprintf(stderr, "Starting exposure of %f seconds.\n", exposure_time_val);
 
-  expose_image_local(exposure_time_val,
-		     flags,
-		     image_filename,
-		     purpose);
+  do_expose_image(exposure_time_val,
+		  flags,
+		  image_filename,
+		  purpose);
 
   fflush(stdout);
   fprintf(stderr, "\n");
+  DisconnectINDI();
+  return 0;
 }

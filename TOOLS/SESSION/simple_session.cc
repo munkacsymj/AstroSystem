@@ -52,11 +52,13 @@ int main(int argc, char **argv) {
   connect_to_camera();
 
   fprintf(stderr, "Turning on mount dual-axis tracking.\n");
-  SetDualAxisTracking(true);
+  //SetDualAxisTracking(true);
 
   Session  session(now,
 		   argv[1],
 		   opts);
 
   session.execute();
+  DisconnectINDI();
+  return 0;
 }

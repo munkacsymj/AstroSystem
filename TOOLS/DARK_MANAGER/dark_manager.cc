@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   int offset = -1;
   int readoutmode = -1;
   int gain = -1;
-  bool linearize = false;
+  //bool linearize = false;
   int binning = -1;
   int quantity_val = 0;
 
@@ -58,7 +58,8 @@ int main(int argc, char **argv) {
       break;
 
     case 'l':
-      linearize = true;
+      //linearize = true;
+      fprintf(stderr, "Warning: 'linearize' has been deprecated. Will not work.\n");
       break;
       
     case 'z':

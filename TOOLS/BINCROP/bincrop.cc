@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
   // Legality checks
   if (target_binning < input_binning or
       input_left_edge > target_left_edge or
-      input_top_edge < target_top_edge or
+      input_top_edge > target_top_edge or
       input_left_edge + input_width*input_binning <
       target_left_edge + target_width or
       input_top_edge + input_height*input_binning <

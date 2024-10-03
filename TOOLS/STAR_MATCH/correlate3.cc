@@ -33,9 +33,10 @@
 #include "correlate_internal3.h"
 #include "matcher3.h"
 
-//#define SINGLE_TASK
+#define SINGLE_TASK
 //#define DEBUG_SINGLE_PAIR
 //#define PRINT_STARS_BEING_USED
+#define PASS0
 
 void AnalyzePair(ThreadTask *tt,
 		Grid *full_grid,
@@ -573,82 +574,84 @@ void AnalyzePair(ThreadTask *tt,
 		IMG_DATA *alt_img,
 		CAT_DATA *ref_cat,
 		CAT_DATA *alt_cat) {
+  unsigned int final_match = 2;
+
 #ifdef PRINTSTATS
   bool enable_printing = false;
 #endif
 
+#if 0
   if (strcmp(alt_cat->hgsc_star.label, "GSC01081-00835") == 0 and
       strcmp(ref_cat->hgsc_star.label, "GSC01081-00698") == 0 and
       strcmp(alt_img->star.StarName, "S415") == 0 and
       strcmp(ref_img->star.StarName, "GSC01081-00804") == 0) {
     fprintf(stderr, "This is a correct pair.\n");
   }
+#endif
+
+#ifdef PASS0
+  {
+    const double img_delx = fabs(ref_img->star.StarCenterX() - alt_img->star.StarCenterX());
+    const double img_dely = fabs(ref_img->star.StarCenterY() - alt_img->star.StarCenterY());
+    double cat_delRA = tt->context->cos_center_dec *
+      (ref_cat->hgsc_star.location.ra_radians() -
+       alt_cat->hgsc_star.location.ra_radians());
+    if (cat_delRA > M_PI) cat_delRA -= 2*M_PI;
+    if (cat_delRA < -M_PI) cat_delRA += 2*M_PI;
+    cat_delRA = fabs(cat_delRA);
+    double cat_delDec = fabs(ref_cat->hgsc_star.location.dec() -
+			     alt_cat->hgsc_star.location.dec());
+    double err_x = fabs(img_delx*tt->context->PIXEL_SCALE_RADIANS - cat_delRA);
+    double err_y = fabs(img_dely*tt->context->PIXEL_SCALE_RADIANS - cat_delDec);
+    double dist_radians = sqrt(cat_delRA*cat_delRA + cat_delDec*cat_delDec);
+    const double pass0_tolerance = 0.1*dist_radians; // fraction
+    if (err_x > pass0_tolerance or err_y > pass0_tolerance) {
+      //fprintf(stderr, "Pass0 test failed.\n");
+      final_match = 0;
+    }
+  }
+#endif // PASS0
 
   tt->num_pairs++;
-  unsigned int final_match = 2;
-  WCS_Simple *wcs = TwoPairToWCS(ref_cat, alt_cat, ref_img, alt_img, tt->context);
-  if (wcs) {
-    tt->num_pass1++;
-    double tolerance = 10.0*M_PI/(180.0*3600.0); // 10 arcsec
-    int pass1_match = Matcher(tt->context,
-			      full_grid,
-			      *wcs,
-			      tt->all_cat_stars,
-			      tt->all_image_stars,
-			      10, 
-			      tolerance,
-			      false); // do_fixup
-    delete wcs;
-    final_match = pass1_match;
-#ifdef PRINTSTATS
-    fprintf(stderr, "pass1_match = %d\n", pass1_match);
-#endif
-    if (pass1_match >= 4) {
-#ifdef PRINTSTATS
-      enable_printing = true;
-      fprintf(stderr, "Entering pass2:\n");
-#endif
-      tt->num_pass2++;
-      WCS_Bilinear *full_wcs = CalculateWCS(tt->context,
-					    tt->all_cat_stars,
-					    tt->all_image_stars,
-					    nullptr);
-      int num_match = Matcher(tt->context,
-			      full_grid,
-			      *full_wcs,
-			      tt->all_cat_stars,
-			      tt->all_image_stars,
-			      10, 
-			      tolerance,
-			      false); // do_fixup
-      final_match = num_match;
-#ifdef PRINTSTATS
-      fprintf(stderr, "pass2 num_match = %d\n", num_match);
-      {
-	ResidualStatistics stats;
-	ComputeStatistics(tt->all_image_stars, stats);
-	fprintf(stderr, "     residual avg/median/stddev = %.2lf, %.2lf, %.2lf (arcsec)\n",
-		ARCSEC(stats.average), ARCSEC(stats.median), ARCSEC(stats.stddev));
-      }
-#endif
-      delete full_wcs;
-      if (num_match >= 4) {
-	tt->num_pass3++;
-	full_wcs = CalculateWCS(tt->context,
+  if (final_match > 0) {
+    WCS_Simple *wcs = TwoPairToWCS(ref_cat, alt_cat, ref_img, alt_img, tt->context);
+    if (wcs) {
+      tt->num_pass1++;
+      double tolerance = 10.0*M_PI/(180.0*3600.0); // 10 arcsec
+      int pass1_match = Matcher(tt->context,
+				full_grid,
+				*wcs,
 				tt->all_cat_stars,
 				tt->all_image_stars,
-				nullptr);
-	num_match = Matcher(tt->context,
-			    full_grid,
-			    *full_wcs,
-			    tt->all_cat_stars,
-			    tt->all_image_stars,
-			    20, 
-			    tolerance,
-			    false); // do_fixup
+				10, 
+				tolerance,
+				false); // do_fixup
+      delete wcs;
+      final_match = pass1_match;
+#ifdef PRINTSTATS
+      //fprintf(stderr, "pass1_match = %d\n", pass1_match);
+#endif
+      if (pass1_match >= 4) {
+#ifdef PRINTSTATS
+	enable_printing = true;
+	//fprintf(stderr, "Entering pass2:\n");
+#endif
+	tt->num_pass2++;
+	WCS_Bilinear *full_wcs = CalculateWCS(tt->context,
+					      tt->all_cat_stars,
+					      tt->all_image_stars,
+					      nullptr);
+	int num_match = Matcher(tt->context,
+				full_grid,
+				*full_wcs,
+				tt->all_cat_stars,
+				tt->all_image_stars,
+				10, 
+				tolerance,
+				false); // do_fixup
 	final_match = num_match;
 #ifdef PRINTSTATS
-	fprintf(stderr, "pass3 num_match = %d\n", num_match);
+	fprintf(stderr, "pass2 num_match = %d\n", num_match);
 	{
 	  ResidualStatistics stats;
 	  ComputeStatistics(tt->all_image_stars, stats);
@@ -658,7 +661,7 @@ void AnalyzePair(ThreadTask *tt,
 #endif
 	delete full_wcs;
 	if (num_match >= 4) {
-	  tt->num_pass4++;
+	  tt->num_pass3++;
 	  full_wcs = CalculateWCS(tt->context,
 				  tt->all_cat_stars,
 				  tt->all_image_stars,
@@ -668,12 +671,12 @@ void AnalyzePair(ThreadTask *tt,
 			      *full_wcs,
 			      tt->all_cat_stars,
 			      tt->all_image_stars,
-			      9999, 
+			      20, 
 			      tolerance,
 			      false); // do_fixup
 	  final_match = num_match;
 #ifdef PRINTSTATS
-	  fprintf(stderr, "pass4 num_match = %d\n", num_match);
+	  fprintf(stderr, "pass3 num_match = %d\n", num_match);
 	  {
 	    ResidualStatistics stats;
 	    ComputeStatistics(tt->all_image_stars, stats);
@@ -681,24 +684,72 @@ void AnalyzePair(ThreadTask *tt,
 		    ARCSEC(stats.average), ARCSEC(stats.median), ARCSEC(stats.stddev));
 	  }
 #endif
+	  delete full_wcs;
 	  if (num_match >= 4) {
+	    tt->num_pass4++;
+	    full_wcs = CalculateWCS(tt->context,
+				    tt->all_cat_stars,
+				    tt->all_image_stars,
+				    nullptr);
+	    num_match = Matcher(tt->context,
+				full_grid,
+				*full_wcs,
+				tt->all_cat_stars,
+				tt->all_image_stars,
+				9999, 
+				tolerance,
+				false); // do_fixup
+	    final_match = num_match;
 #ifdef PRINTSTATS
-	    fprintf(stderr, "    ref/alt = %s/%s\n",
-		    ref_cat->hgsc_star.label,
-		    alt_cat->hgsc_star.label);
+	    fprintf(stderr, "pass4 num_match = %d\n", num_match);
+	    {
+	      ResidualStatistics stats;
+	      ComputeStatistics(tt->all_image_stars, stats);
+	      fprintf(stderr, "     residual avg/median/stddev = %.2lf, %.2lf, %.2lf (arcsec)\n",
+		      ARCSEC(stats.average), ARCSEC(stats.median), ARCSEC(stats.stddev));
+	    }
 #endif
-	    if (num_match > tt->best_solution.num_img_matches) {
+	    if (num_match >= 4) {
 #ifdef PRINTSTATS
-	      fprintf(stderr, "new best solution in thread.\n");
+	      fprintf(stderr, "    ref/alt = %s/%s\n",
+		      ref_cat->hgsc_star.label,
+		      alt_cat->hgsc_star.label);
 #endif
-	      delete tt->best_solution.solution_wcs;
-	      tt->best_solution = Solution({full_wcs, num_match, 0});
+	      if (num_match > tt->best_solution.num_img_matches) {
+#ifdef PRINTSTATS
+		fprintf(stderr, "new best solution in thread.\n");
+#endif
+		delete tt->best_solution.solution_wcs;
+		tt->best_solution = Solution({full_wcs, num_match, 0});
+#if 0
+		{
+		  const double img_delx = fabs(ref_img->star.StarCenterX() - alt_img->star.StarCenterX());
+		  const double img_dely = fabs(ref_img->star.StarCenterY() - alt_img->star.StarCenterY());
+		  double cat_delRA = tt->context->cos_center_dec *
+		    (ref_cat->hgsc_star.location.ra_radians() -
+		     alt_cat->hgsc_star.location.ra_radians());
+		  if (cat_delRA > M_PI) cat_delRA -= 2*M_PI;
+		  if (cat_delRA < -M_PI) cat_delRA += 2*M_PI;
+		  cat_delRA = fabs(cat_delRA);
+		  double cat_delDec = fabs(ref_cat->hgsc_star.location.dec() -
+					   alt_cat->hgsc_star.location.dec());
+		  double err_x = fabs(img_delx*tt->context->PIXEL_SCALE_RADIANS - cat_delRA);
+		  double err_y = fabs(img_dely*tt->context->PIXEL_SCALE_RADIANS - cat_delDec);
+		  double dist_radians = sqrt(cat_delRA*cat_delRA + cat_delDec*cat_delDec);
+		  const double pass0_tolerance = 0.1*dist_radians; // fraction
+		  if (err_x > pass0_tolerance or err_y > pass0_tolerance) {
+		    fprintf(stderr, "Pass0 test failed.\n");
+		    final_match = 0;
+		  }
+		}
+#endif		
+	      } else {
+		delete full_wcs;
+	      }
 	    } else {
+
 	      delete full_wcs;
 	    }
-	  } else {
-
-	    delete full_wcs;
 	  }
 	}
       }

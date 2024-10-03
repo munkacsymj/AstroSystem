@@ -68,6 +68,8 @@ struct ThreadTask {
   unsigned int thread_id;
   Truth *truth;
   std::vector<int> histogram;
+  double cos_dec;
+  double sin_dec;
   int num_pairs {0};
   int num_pass1 {0};
   int num_pass2 {0};

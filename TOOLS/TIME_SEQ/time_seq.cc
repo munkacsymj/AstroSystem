@@ -18,6 +18,8 @@
  */
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "camera_api.h"
 #include "scope_api.h"
 #include "drifter.h"
@@ -29,6 +31,7 @@
 #include <stdlib.h>		// for atof()
 #include <gendefs.h>
 #include <named_stars.h>
+#include <dark.h>
 #include <ctype.h>		// isdigit()
 #include "system_config.h"
 
@@ -44,6 +47,11 @@
 			   // prevent flip
 
 Image *ProcessImage(const char *exposure_filename, Drifter *drift);
+
+static void Terminate(void) {
+  DisconnectINDI();
+  exit(-2);
+}
 
 long int char_to_time(const char *s) {
   // string must be in form of "hh:mm"
@@ -178,29 +186,7 @@ FetchOffsets(const char *string,
 //        Invoke dark manager
 //********************************
 const char *get_darkfilename(double how_long) {
-  const char *session_dir_name = DateToDirname();
-  char dark_command[256];
-
-  sprintf(dark_command, COMMAND_DIR "/dark_manager -n 1 -t %lf -d %s > /tmp/darkfilename",
-	  how_long, session_dir_name);
-  if (system(dark_command) == -1) {
-    fprintf(stderr, "time_seq_new: cannot invoke dark_manager\n");
-    return 0;
-  }
-
-  FILE *fp = fopen("/tmp/darkfilename", "r");
-  if (!fp) {
-    perror("time_seq_new: unable to read /tmp/darkfilename:");
-  } else {
-    char dark_filename[256];
-    if (fgets(dark_filename, sizeof(dark_filename), fp)) {
-      fclose(fp);
-      return(strdup(dark_filename));
-    } else {
-      fprintf(stderr, "time_seq_new: unable to get filename from /tmp/darkfilename\n");
-    }
-  }
-  return 0; // only way to get here is if error encountered
+  return GetDark(how_long, 1);
 }
 
 //********************************
@@ -208,7 +194,7 @@ const char *get_darkfilename(double how_long) {
 //********************************
 void usage(void) {
   fprintf(stderr, "usage: time_seq [-d] [-P profile] -t xx.x -n starname [-q hh:mm] [-m hh:mm] [-f Vc] -l logfile.log\n");
-  exit(-2);
+  Terminate();
   /*NOTREACHED*/
 }
 
@@ -365,7 +351,7 @@ int main(int argc, char **argv) {
   connect_to_scope();
 
   //fprintf(stderr, "Disabling mount dual-axis tracking.\n");
-  SetDualAxisTracking(true);
+  //SetDualAxisTracking(true);
 
   SystemConfig config;
   //const bool camera_ST9 = config.IsST9();
@@ -399,7 +385,7 @@ int main(int argc, char **argv) {
   NamedStar target(starname);
   if (!target.IsKnown()) {
     fprintf(stderr, "Don't know of object named %s\n", starname);
-    exit(-2);
+    Terminate();
   }
   DEC_RA target_loc = target.Location();
   
@@ -439,7 +425,7 @@ int main(int argc, char **argv) {
     if (!drifter_fp) {
       fprintf(stderr, "Error trying to open %s as logfile\n",
 	      filename);
-      exit(-2);
+      Terminate();
     }
     drift = new Drifter(drifter_fp);
   }
@@ -501,7 +487,7 @@ int main(int argc, char **argv) {
 	// see if we've been "notify" of quit
 	if (ReceiveMessage("time_seq_new", &message_id)) {
 	  fprintf(stderr, "time_seq_new: received notify message. Quitting.\n");
-	  exit(2);
+	  Terminate();
 	}
 	exposure_filename = expose_image(initialize_exposure_time, flags, "DRIFT_SETUP",
 					 drift);
@@ -599,17 +585,19 @@ int main(int argc, char **argv) {
 #endif
   // otherwise, we're done.
   fprintf(stderr, "time_seq_new: time is up.\n");
+  DisconnectINDI();
   return 0;
 }
 
 Image *ProcessImage(const char *exposure_filename, Drifter *drift) {
+  fprintf(stderr, "ProcessImage(): starting.\n");
   char command[512];
   
   sprintf(command, "find_stars  %s -i %s;star_match -e -f -b -h -n %s -i %s",
 	  current_dark_name, exposure_filename, starname, exposure_filename);
   if (system(command) == -1) {
     fprintf(stderr, "time_seq_new: cannot invoke find_stars/star_match.\n");
-    exit(-2);
+    Terminate();
   }
 
   Image *image = new Image(exposure_filename); // pick up new starlist
@@ -621,5 +609,6 @@ Image *ProcessImage(const char *exposure_filename, Drifter *drift) {
       drift->AcceptCenter(image_center, info->GetExposureMidpoint());
     }
   }
+  fprintf(stderr, "ProcessImage(): finished.\n");
   return image; // this is raw (not dark-subtracted)
  }

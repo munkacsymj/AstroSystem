@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     
     // find 10 brighest stars in our image and set the "is_widefield"
     // flag (which is actually called SELECTED). 
-    const int NUM_WIDEFIELD_STARS = 15;
+    const int NUM_WIDEFIELD_STARS = 10;
     int star_index = NUM_WIDEFIELD_STARS;
     if(star_index > List->NumStars) star_index = List->NumStars;
       
