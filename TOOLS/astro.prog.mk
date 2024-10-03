@@ -8,6 +8,12 @@ ifndef OPTIMIZE
 OPTIMIZE = -O3
 endif
 
+ifeq ($(INTERFACE), INDI)
+    INDI_LIB = -lindiclient
+else
+    INDI_LIB =
+endif
+
 CXXFLAGS	= -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 \
 	$(INCLUDES) -g $(OPTIMIZE) -Wall -fPIC -std=gnu++17
 
@@ -36,6 +42,7 @@ BIN_DIR = $(ASTRO_HOME)/BIN/
 ALL_LIBS = $(LIBS_HOME)/ASTRO_LIB/libastro.so \
 	-lceres \
 	-lcfitsio \
+	$(INDI_LIB) \
 	-L/usr/X11R6/lib -lXaw -lXt -lX11 \
 	-lpthread -lrt -lglog \
 	-lgsl -lgslcblas -lm
