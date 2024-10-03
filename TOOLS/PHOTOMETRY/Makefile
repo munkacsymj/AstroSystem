@@ -1,5 +1,5 @@
 TARGETS = make_flat auto_flat photometry setup_iraf \
-	auto_all_filter_flat flatten allstar2istar photometry_psf \
+	auto_all_filter_flat auto_no_filter_flat flatten allstar2istar photometry_psf \
 	update_pst_list image_statistics flat_renormalize fits_16 \
 	assess_flat print256_256
 
@@ -37,6 +37,10 @@ photometry_psf: photometry_psf.o
 auto_all_filter_flat: auto_all_filter_flat.o
 	$(CXXLD) auto_all_filter_flat.o -o auto_all_filter_flat $(LIB_DIR) $(ALL_LIBS)
 	ln -s -f $(PWD)/auto_all_filter_flat $(BIN_DIR)/auto_all_filter_flat
+
+auto_no_filter_flat: auto_no_filter_flat.o
+	$(CXXLD) auto_no_filter_flat.o -o auto_no_filter_flat $(LIB_DIR) $(ALL_LIBS)
+	ln -s -f $(PWD)/auto_no_filter_flat $(BIN_DIR)/auto_no_filter_flat
 
 flatten: flatten.o
 	$(CXXLD) flatten.o -o flatten $(LIB_DIR) $(ALL_LIBS)
