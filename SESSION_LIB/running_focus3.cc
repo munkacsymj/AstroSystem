@@ -45,7 +45,7 @@
 //    CONTINUOUS_DITHER
 //****************************************************************
 
-//#define CONTINUOUS_DITHER
+//#define CONTINUOUS_DITHER // warning: continuous_dither is broken/won't compile
 
 #define LIVE                 // use the realtime clock
 //#define REPLAY               // use an input file
@@ -1053,7 +1053,7 @@ RunningFocus::AddPoint(double gaussian, double focuser, JULIAN time_tag) {
 
 // Value of 200 works for the Arduino C14 focuser
 // Value of 10000 for the ESATTO
-#ifdef CONTINUOUS_DITHER
+//#ifdef CONTINUOUS_DITHER
 
 static int dither_size(void) {
   static SystemConfig config;

@@ -1,4 +1,4 @@
-all: libremote_lib.a libremote_lib.so list_image_profiles
+all: libremote_lib.a libremote_lib.so #list_image_profiles
 
 clean:
 	rm -f libremote_lib.a libremote_lib.so *.o

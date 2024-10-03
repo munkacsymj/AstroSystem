@@ -1,4 +1,6 @@
 all: libastro.so
+clean:
+	rm -f *.o *.so
 
 COMPONENTS = ../DATA_LIB/libdata_lib.o \
 	../IMAGE_LIB/libImage.o \
