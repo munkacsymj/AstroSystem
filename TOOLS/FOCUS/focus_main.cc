@@ -50,7 +50,8 @@ bool fixed_slope {true};	// override with the -3 command line arg
 FILE *logfile = stdout;
 
 static void Terminate(void) {
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   exit(-2);
 }
 
@@ -207,6 +208,7 @@ int main(int argc, char **argv) {
   fflush(logfile);
 
 
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   return 0;
 }

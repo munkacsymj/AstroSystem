@@ -18,13 +18,12 @@
  */
 #include <unistd.h>		// pick up sleep(), getopt()
 #include <stdio.h>
-#include <gemini_messages.h>
 #include <scope_api.h>
 
 int main(int argc, char **argv) {
   connect_to_scope();
 
   ParkTelescope();
-  DisconnectINDI();
+  disconnect_scope();
   return 0;
 }

@@ -16,7 +16,6 @@ int main(int argc, char **argv) {
 
   list<ObservingAction *> answer;
 
-  time_t now = time(0);
   JULIAN jd_start(2459215.268808);
   JULIAN jd_end = jd_start.add_days(0.5);
 

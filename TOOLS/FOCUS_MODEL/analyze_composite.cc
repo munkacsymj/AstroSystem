@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
       run_data.add(r, adj_value);
 
-      constexpr int skipper = 6;
+      //constexpr int skipper = 6;
       //if (row % skipper == 0 and col % skipper == 0) {
       //fprintf(stderr, "%.2lf,%.1lf\n", r, adj_value);
       //}

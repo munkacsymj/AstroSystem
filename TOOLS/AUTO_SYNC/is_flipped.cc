@@ -10,6 +10,6 @@ int main(int argc, char **argv) {
   } else {
     printf("dec_axis_is_flipped() == false\n");
   }
-  DisconnectINDI();
+  disconnect_scope();
   return 0;
 }

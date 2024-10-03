@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
   printf("Final scope position:\nRA= %s\nDEC= %s\n",
 	 final_pos.string_ra_of(),
 	 final_pos.string_dec_of());
-  DisconnectINDI();
+  disconnect_scope();
   return 0;
 }
   

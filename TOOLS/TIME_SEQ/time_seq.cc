@@ -49,7 +49,8 @@
 Image *ProcessImage(const char *exposure_filename, Drifter *drift);
 
 static void Terminate(void) {
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   exit(-2);
 }
 
@@ -585,7 +586,8 @@ int main(int argc, char **argv) {
 #endif
   // otherwise, we're done.
   fprintf(stderr, "time_seq_new: time is up.\n");
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   return 0;
 }
 

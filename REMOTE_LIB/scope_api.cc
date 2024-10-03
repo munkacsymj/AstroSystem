@@ -180,6 +180,18 @@ void connect_to_scope(void) {
   initialize_mount();
 }
 
+void disconnect_scope(void) {
+  ; // noop for native interface
+}
+
+void disconnect_focuser(void) {
+  ; // noop for native interface
+}
+
+void connect_to_focuser(void) {
+  connect_to_scope();
+}
+
 
 // Will try to resynchronize the interface with the scope controller
 int ResyncInterface(void) {

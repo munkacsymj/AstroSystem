@@ -85,10 +85,12 @@ void PrintMeasurements(void);
 //        Configuration constants
 //****************************************************************
 
+#if 0				// might be needed in the future
 static double f_number(void) {
   static SystemConfig config;
   return config.FocalRatio();
 }
+#endif
 
 static double focus_slope(void) {
   static SystemConfig config;

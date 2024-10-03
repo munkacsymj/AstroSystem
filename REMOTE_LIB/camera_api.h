@@ -33,7 +33,7 @@ void connect_to_camera(void);
 // a 0 if something goes wrong
 int camera_is_available(void);
 
-void camera_disconnect(void); // noop for NATIVE I/F, but needed for INDI
+void disconnect_camera(void); // noop for NATIVE I/F, but needed for INDI
 
 struct subframe_t {
   int box_left {0}; // 0-based, left<right

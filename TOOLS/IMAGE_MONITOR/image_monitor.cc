@@ -101,7 +101,7 @@ extern "C"
 void image_click_cb(GtkWidget *main, GdkEvent *event, gpointer user_data);
 
 static void Terminate(void) {
-  DisconnectINDI();
+  disconnect_camera();
   exit(-2);
 }
 
@@ -360,7 +360,7 @@ int main(int argc, char **argv) {
 
   gtk_main();
   request_thread_quit = true;
-  DisconnectINDI();
+  disconnect_camera();
   return 0;
 }
 

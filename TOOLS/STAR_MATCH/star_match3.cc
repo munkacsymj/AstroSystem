@@ -128,6 +128,13 @@ int main(int argc, char **argv) {
     }
   }
 
+  if (no_shortcuts) {
+    fprintf(stderr, "Warning: no_shortcuts ignored. I never take shortcuts.\n");
+  }
+  if (use_high_precision) {
+    fprintf(stderr, "Warning: use_high_precision ignored. I always do that.\n");
+  }
+
   if(image_filename == 0 || starname == 0) {
     fprintf(stderr,
 	    "usage: %s [-h] [-f] -n starname -i image_filename.fits [-d dark]\n",

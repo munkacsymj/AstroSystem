@@ -59,6 +59,7 @@ int main(int argc, char **argv) {
 		   opts);
 
   session.execute();
-  DisconnectINDI();
+  disconnect_scope();
+  disconnect_camera();
   return 0;
 }

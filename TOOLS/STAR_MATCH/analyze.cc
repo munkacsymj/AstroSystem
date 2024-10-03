@@ -245,7 +245,9 @@ main(int argc, char **argv) {
       char photometry_command[132];
       sprintf(photometry_command, COMMAND_DIR "/photometry -i %s\n",
 	      this_image_name);
-      system(photometry_command);
+      if (system(photometry_command)) {
+	fprintf(stderr, "photometry command returned error code.\n");
+      }
     }
 
     IStarList *List = new IStarList(this_image_name);

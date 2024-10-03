@@ -845,7 +845,7 @@ DNode::Satisfy(int level, bool force_update) {
     {
       const juid_t image_juid = this->json->GetValue("exposure")->Value_int();
       if (force_update or any_predecessor_dirty or
-	  this->parent_tree->FileTimestampByJUID(image_juid) > this->timestamp) or
+	  this->parent_tree->FileTimestampByJUID(image_juid) > this->timestamp or
 	  this->parent_tree->JUIDLookup(image_juid)->timestamp > this->timestamp) {
 	this->dirty |= this->DoInstPhotometry(image_juid);
       }

@@ -319,6 +319,7 @@ int main(int argc, char **argv) {
 
   fflush(stdout);
   fprintf(stderr, "\n");
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   return 0;
 }

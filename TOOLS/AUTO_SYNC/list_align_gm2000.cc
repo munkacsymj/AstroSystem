@@ -33,7 +33,7 @@
 const char *find_match(DEC_RA &location) {
   NamedStar star(location);
   if (star.IsKnown()) {
-    return star.Name();
+    return strdup(star.Name());
   }
   return 0;
 }

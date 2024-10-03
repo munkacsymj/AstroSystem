@@ -124,7 +124,7 @@ int main(int argc, char **argv) {
     do_startup(perform_adjust);
     break;
   }
-  DisconnectINDI();
+  disconnect_camera();
   return 0;
 }
     

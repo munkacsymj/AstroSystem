@@ -100,7 +100,7 @@ int camera_is_available(void) {
   return (trial_connect_to_camera() < 0 ? 0 : 1);
 }
 
-void camera_disconnect(void) {
+void disconnect_camera(void) {
   ; // noop for NATIVE interface
 }
 

@@ -38,7 +38,7 @@ void scope_error(char *response, ScopeResponseStatus Status) {
 void usage(void) {
   fprintf (stderr, "usage: set_focus [-F C|F] [-h | -t [+-]nnn] | -a [+=]nnn\n");
   fprintf (stderr, "     (nnn in msec)\n");
-  DisconnectINDI();
+  disconnect_focuser();
   exit(-2);
 }
 
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     } else {
       fprintf(stderr, "set_focus: ERROR: focuser name %s isn't C (coarse) or F (fine)\n",
 	      focuser_name);
-      DisconnectINDI();
+      disconnect_focuser();
       exit(-2);
     }
   }
@@ -121,6 +121,6 @@ int main(int argc, char **argv) {
 
   fprintf(stderr, "Focuser limit (system_config) is %.0lf\n",
 	  system_config.FocuserMax(FOCUSER_FINE));
-  DisconnectINDI();
+  disconnect_focuser();
   return 0;
 }

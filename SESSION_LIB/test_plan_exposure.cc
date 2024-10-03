@@ -66,5 +66,5 @@ int main(int argc, char **argv) {
 	      {PHOT_B, B_mags},
 	      {PHOT_R, R_mags},
 	      {PHOT_I, I_mags}} );
-  const ExposurePlanList &epl = GetExposurePlan(ml);
+  const ExposurePlanList __attribute__((unused)) &epl = GetExposurePlan(ml);
 }

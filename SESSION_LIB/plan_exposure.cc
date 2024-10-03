@@ -52,7 +52,7 @@ static double PE_DarkCurrent = 0.003; // electrons/sec/pixel at current temp
 static double PE_ApertureArea = 3*3*M_PI; // 3-pixel radius
 static double PE_SkyGlowCurrent[MAX_COLORS]; // e-/second/pixel
 static MagnitudeReference PE_StarFlux[MAX_COLORS];
-static double PE_FWHM = 4.0;	// arcsec
+//static double PE_FWHM = 4.0;	// arcsec
 static double PE_PeakRatio = 0.1; // ratio of ADU peak to total flux
 static constexpr double PE_Gain = 3.6; // e-/ADU
 static constexpr double PE_Saturation = 50000.0; // ADU

@@ -32,6 +32,12 @@
 //
 //
 
+static void Terminate(void) {
+  disconnect_camera();
+  disconnect_scope();
+  exit(-2);
+}
+
 double saturation = -1.0;
 
 struct FlatInfo {
@@ -220,8 +226,7 @@ int build_sequence(double      exposure_time,
 				    
 void usage(void) {
   fprintf(stderr, "auto_all_filter_flat -o /home/IMAGES/date/\n");
-  DisconnectINDI();
-  exit(-2);
+  Terminate();
 }
 
 int main(int argc, char **argv) {
@@ -304,8 +309,7 @@ int main(int argc, char **argv) {
 	ImageInfo *info = rough.GetImageInfo();
 	if (!info) {
 	  fprintf(stderr, "auto_all_filter_flat: ERROR. Missing ImageInfo.\n");
-	  DisconnectINDI();
-	  exit(-1);
+	  Terminate();
 	} else if (not info->DatamaxValid()) {
 	  saturation = 65530.0;
 	} else {
@@ -338,8 +342,7 @@ int main(int argc, char **argv) {
 	if(new_exposure_time < exposure_time) {
 	  fprintf(stderr, "auto_flat: logic error: %.2f < %.2f\n",
 		  new_exposure_time, exposure_time);
-	  DisconnectINDI();
-	  exit(-2);
+	  Terminate();
 	}
 
 	// limit changes to a factor of 4x to stay in control
@@ -368,8 +371,7 @@ int main(int argc, char **argv) {
 			&filter,
 			flat_data[f].raw_flat_names,
 			"FLAT") < 0) {
-	DisconnectINDI();
-	exit(-2);
+	Terminate();
       }
     }
   }
@@ -382,8 +384,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Starting bias exposure run of %d images at %.3f\n",
 	    num_bias_exposures, 0.0);
     if(build_sequence(0.0, num_bias_exposures, shutter_shut, filter, bias_name, "BIAS") < 0) {
-      DisconnectINDI();
-      exit(-2);
+      Terminate();
     }
   }
 #endif
@@ -412,15 +413,13 @@ int main(int argc, char **argv) {
       if(build_sequence(this_exp_time,
 			num_dark_exposures, shutter_shut, filter,
 			dark_filenames, "DARK") < 0) {
-	DisconnectINDI();
-	exit(-2);
+	Terminate();
       }
       // make a dark
       char *cmd_buffer = (char *) malloc(256 + 256*num_dark_exposures);
       if (!cmd_buffer) {
 	perror("Cannot allocate command memory:");
-	DisconnectINDI();
-	exit(-2);
+	Terminate();
       }
       sprintf(cmd_buffer, "medianaverage -o %s  ", flat_data[f].dark_name);
       for (auto f : dark_filenames) {
@@ -429,8 +428,7 @@ int main(int argc, char **argv) {
       }
       if(system(cmd_buffer)) {
 	fprintf(stderr, "combine darks returned error code.\n");
-	DisconnectINDI();
-	exit(-2);
+	Terminate();
       }
     }
     
@@ -449,6 +447,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "auto_flat: flat file put into %s\n",
 	    flat_data[f].final_flat_name);
   }
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   return 0;
 }
