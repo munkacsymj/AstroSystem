@@ -1,4 +1,9 @@
-TARGETS =  gm2000_sync 
+ifeq ($(GM2000),GM2000)
+  TARGETS = gm2000_sync
+else
+  TARGETS =
+endif 
+
 all: $(TARGETS)
 
 star_sync: star_sync.o

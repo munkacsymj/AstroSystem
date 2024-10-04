@@ -133,6 +133,7 @@ void MountGoToFlatLight(void);	// blocks for a long time; stops
 				// undo this.
 void MountResumeTracking(void); //
 
+double GetSiderealTime(void); // value in radians
 
 #ifdef GM2000
 // zeroes the mount's model. Cannot be undone.
@@ -153,7 +154,6 @@ void SetAngularPosition(double ra_axis_degrees, double dec_axis_degrees);
 
 // return_string must have room for "HH:MM:SS.SS"
 void GetSiderealTime(char *return_string);
-double GetSiderealTime(void); // value in radians
 
 // Set local pressure and temperature for use in computing refraction
 void MountSetPressure(double pressure_hPa);
@@ -202,7 +202,9 @@ bool DualAxisTrackingEnabled(void); // true means dual-axis tracking
 				    // is turned on.
 void SetDualAxisTracking(bool enabled);
 
-#else
+#endif
+
+#ifdef GEMINI
 
 #define MI250_GET  101
 #define MI250_SET  102

@@ -360,7 +360,8 @@ void GetSafetyLimit(double *eastern_limit,
 #ifdef GM2000
   *eastern_limit = 0.0;
   *western_limit = 0.0;
-#else
+#endif
+#ifdef GEMINI
   char message[32];
   char response[32];
   ScopeResponseStatus status;

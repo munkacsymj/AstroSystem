@@ -70,7 +70,7 @@ Tracker::Update(Image *image, int depth) {
   // each pixel value. We use the median pixel value in the tracking
   // box.
   double pixel_offset;
-  int bright_x, bright_y;
+  int bright_x {0}, bright_y {0};
   int x, y;
 
   // detect and halt oscillation

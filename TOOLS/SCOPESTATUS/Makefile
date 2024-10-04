@@ -1,4 +1,8 @@
-TARGETS = scope_status # scope_monitor
+ifeq ($(GM2000),GM2000)
+  TARGETS = scope_status # scope_monitor
+else
+  TARGETS =
+endif
 
 all: $(TARGETS)
 

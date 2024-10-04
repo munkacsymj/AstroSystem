@@ -42,7 +42,11 @@ TARGETS = obs_record.o		\
 	StrategyDatabase.o	\
 	validation.o		\
 
-
+ifeq ($(INTERFACE),INDI)
+  ASTROLIBS = ../ASTRO_LIB/libastro.so -lindiclient
+else
+  ASTROLIBS = ../ASTRO_LIB/libastro.so
+endif
 
 SCRIPT_TGTS = script_out.o
 
@@ -56,10 +60,10 @@ running_focus3 : running_focus3.o focus_simulator.o
 	g++ -o running_focus3 running_focus3.o focus_simulator.o -lceres ../ASTRO_LIB/libastro.so -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog
 
 test_oa: test_oa.o observing_action.o
-	g++ -o test_oa test_oa.o observing_action.o ../ASTRO_LIB/libastro.so -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -lceres -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog
+	g++ -o test_oa test_oa.o observing_action.o $(ASTROLIBS) -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -lceres -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog
 
 test_plan_exposure: test_plan_exposure.o plan_exposure.o
-	g++ -o test_plan_exposure test_plan_exposure.o plan_exposure.o ../ASTRO_LIB/libastro.so -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -lceres -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog
+	g++ -o test_plan_exposure test_plan_exposure.o plan_exposure.o $(ASTROLIBS) -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -lceres -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog
 
 test_stripper: test_stripper.o
 	g++ -o test_stripper test_stripper.o ../ASTRO_LIB/libastro.so -L $(ASTROHOME)/ASTRO/CFITSIO/cfitsio -lceres -L /usr/X11R6/lib -lXaw -lXt -lX11 -lpthread -lrt -lcfitsio -lgsl -lgslcblas -lm -lglog

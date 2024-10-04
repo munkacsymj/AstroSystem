@@ -190,8 +190,10 @@ MOUNT_INDI::MoveTo(DEC_RA &location, int encourage_flip) { // returns immediatel
 
 void
 MOUNT_INDI::WaitForMoveDone(void) {			    // blocks until completed
+#if 0 // see below
   double error_hrs = 0.0;
   double error_dec_radians = 0.0;
+#endif
   int timeout_count = 30; // 30 seconds should always be enough
   do {
     //std::cerr << "Wait: waiting one second.\n";
@@ -442,7 +444,7 @@ MOUNT_INDI::RawScopePointsAt(void) {
     sleep(1);
   }
   std::cerr << "MOUNT_INDI: no dec/ra avail from mount\n";
-  DisconnectINDI();
+  INDIDisconnectINDI();
   exit(-2);
   /*NOTREACHED*/
   return DEC_RA(0.0,0.0);  
@@ -466,7 +468,7 @@ MOUNT_INDI::ScopePointsAtJ2000(void) {
     sleep(1);
   }
   std::cerr << "MOUNT_INDI: no dec/ra avail from mount\n";
-  DisconnectINDI();
+  INDIDisconnectINDI();
   exit(-2);
   /*NOTREACHED*/
   return DEC_RA(0.0,0.0);
@@ -496,7 +498,7 @@ MOUNT_INDI::GetLocalSiderealTime(void) {// Return value in hours 0..24
   double gmst = fmod(6.697375+0.065707485828*dut
 		     +0.0854103*t+0.0000258*t*t, 24.0); // hours 0..24
   // now add local longitude
-  double last = gmst + (LOCAL_LON_DEG/15.0);
+  double last = gmst + (system_config.Longitude()/15.0);
   if (last < 0.0) last += 24.0;
   if (last >= 24.0) last -= 24.0;
   return last;

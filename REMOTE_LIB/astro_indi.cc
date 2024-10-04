@@ -294,7 +294,10 @@ void INDIDisconnectINDI(void) {
 
 void ConnectAstroINDI(void) {
   if (AstroAttached) return;
-  atexit(DisconnectINDI);
+  // atexit() is something of a backup plan B, since it is invoked too
+  // late in the process shutdown to prevent bad things from
+  // happening, but I left it in here as a (weak) insurance policy.
+  atexit(INDIDisconnectINDI);
   
   if (astro_client == nullptr) {
     astro_client = new AstroClient;
@@ -521,6 +524,7 @@ AstroClient::logProperty(INDI::Property property) {
   case INDI_BLOB:
     p_size = property.getBLOB()->count();
     break;
+  default:
   case INDI_UNKNOWN:
     p_size = 0;
     break;

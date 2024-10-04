@@ -75,13 +75,20 @@ JSON_Expression *ParseImageProfiles(void) {
 	    profile_path.c_str());
     return nullptr;
   } else {
-    char *profile_contents = (char *) malloc(statbuf.st_size+1);
-    if (read(fd, profile_contents, statbuf.st_size) != statbuf.st_size) {
-      fprintf(stderr, "Error reading image_profiles from %s\n",
-	      profile_filename.c_str());
+    const long file_length = statbuf.st_size;
+    char *profile_contents = (char *) malloc(file_length+1);
+    if (file_length < 1000000) {
+      const long bytes_read = read(fd, profile_contents, file_length);
+      if (bytes_read != file_length) {
+	fprintf(stderr, "Error reading image_profiles from %s\n",
+		profile_filename.c_str());
+	exit(-1);
+      }
+      close(fd);
+    } else {
+      fprintf(stderr, "Image_profile file unreasonably long. Terminating.\n");
       exit(-1);
     }
-    close(fd);
 
     profile_contents[statbuf.st_size]=0;
     const JSON_Expression *profiles = new JSON_Expression(profile_contents);

@@ -1,4 +1,8 @@
-TARGETS = auto_sync is_flipped list_align_gm2000 test_dec center_test
+TARGETS = auto_sync is_flipped test_dec center_test
+ifeq ($(GM2000),GM2000)
+  TARGETS = $(TARGETS) list_align_gm2000
+endif
+
 all: $(TARGETS)
 
 center_test: center_test.o

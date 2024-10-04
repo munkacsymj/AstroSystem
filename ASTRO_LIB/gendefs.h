@@ -60,7 +60,7 @@
 #undef INTERNAL_MOUNT_MODEL
 
 #undef GEMINI
-#define GM2000
+#undef GM2000
 #undef LX200
 
 

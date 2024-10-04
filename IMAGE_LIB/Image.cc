@@ -17,6 +17,7 @@
  *   <http://www.gnu.org/licenses/>. 
  */
 #include <math.h>		// define HUGE
+#include <cstdint>		// uint32
 #include <stdlib.h>		// malloc(), free()
 #include <unistd.h>		// unlink()
 #include <fitsio.h>

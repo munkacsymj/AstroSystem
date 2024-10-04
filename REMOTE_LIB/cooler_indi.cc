@@ -24,6 +24,27 @@
 #include "astro_indi.h"
 #include "cooler_indi.h"
 
+CoolerCommand::CoolerCommand(void) {
+  mode = NO_COMMAND;
+}
+
+void
+CoolerCommand::SetCoolerOff(void) {
+  mode = COOLER_OFF;
+}
+
+void
+CoolerCommand::SetCoolerManual(double PowerLevel) { // 0->1.0
+  mode = MANUAL;
+  Power = PowerLevel;
+}
+
+void
+CoolerCommand::SetCoolerSetpoint(double TempC) {
+  mode = SETPOINT;
+  Setpoint = TempC;
+}
+
 int // return 1 if successful
 CoolerCommand::Send(void) {
   if (!cooler) {
@@ -120,7 +141,7 @@ CCDCooler::GetCoolerData(double *ambient_temp,
   int timeout = 6;
   while (not this->cooler_off.available) {
     if (timeout-- <= 0) {
-      DisconnectINDI();
+      INDIDisconnectINDI();
       std::cerr << "GetCoolerData: forced exit. cooler_off.available timeout\n";
       exit(-2);
     }

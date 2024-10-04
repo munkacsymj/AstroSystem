@@ -1,4 +1,5 @@
 #include <list>
+#include <time.h>		// time()
 #include <ctype.h>
 #include <stdlib.h>		// atol(), malloc()
 #include <fcntl.h>
@@ -95,8 +96,10 @@ JSON_Expression::SyncWithFile(const char *pathname, int mode) {
     fprintf(stderr, "Unable to stat() json file %s\n", pathname);
     kill(0, SIGABRT);
   }
-  char *contents = (char *) malloc(statbuf.st_size+1);
-  if (read(json_fd, contents, statbuf.st_size) != statbuf.st_size) {
+  size_t file_length = statbuf.st_size;
+  char *contents = (char *) malloc(file_length+1);
+  const long bytes_read = read(json_fd, contents, file_length);
+  if (bytes_read != (long) statbuf.st_size) {
     fprintf(stderr, "Error reading json file from %s\n",
 	    pathname);
     kill(0, SIGABRT);

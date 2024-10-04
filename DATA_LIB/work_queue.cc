@@ -143,15 +143,21 @@ WorkQueue::GetLine(WQ_UID line_uid) {
   }
 
   lseek(fd, li->line_start, SEEK_SET); // seek to start
-  char buffer[li->line_length+1];
-  int bytes = read(fd, buffer, li->line_length);
-  if (bytes != li->line_length) {
-    fprintf(stderr, "WorkQueue::GetLine:read() bad read: %d\n",
-	    bytes);
-  }
-  buffer[li->line_length] = 0;
+  const int line_length = li->line_length;
+  if (line_length < 2000) {
+    char buffer[line_length+1];
+    int bytes = read(fd, buffer, line_length);
+    if (bytes != line_length) {
+      fprintf(stderr, "WorkQueue::GetLine:read() bad read: %d\n",
+	      bytes);
+    }
+    buffer[line_length] = 0;
 
-  return std::string(buffer+12);
+    return std::string(buffer+12);
+  } else {
+    fprintf(stderr, "WorkQueue::GetLine: line too long: %d\n", line_length);
+  }
+  return ""; // error return
 }
 
 LineInfo *

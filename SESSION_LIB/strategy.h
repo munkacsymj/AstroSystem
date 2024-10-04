@@ -71,7 +71,7 @@ public:
   const char *Designation(void) const {return designation; }
   // AAVSOName is the name that is used to look up this star in the
   // AAVSO VSP tool.
-  const char *AAVSOName(void) const { return (aavso_name ?
+  const char *AAVSOName(void) const { return (aavso_name[0] ?
 					      aavso_name : object_name); }
   const char *ReportName(void) const { return (report_name[0] ?
 					       report_name :
