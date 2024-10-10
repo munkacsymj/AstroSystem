@@ -31,3 +31,23 @@ a server that controls the mount and focuser
 # Executable programs and tools
 These all reside in a directory named "TOOLS". Almost all of these are built upon the Common Library. There are currently about 70 subfolders to TOOLS. Each contains one or more executable programs.
 
+# Prerequisites
+
+This is (still) kind of messy, but you need:
+
+* IRAF (this is only used for one program: photometry. AstroImageJ is a fine substitute and eliminates all of the hassle associated with installing IRAF)
+* cfitsio (a NASA project, available through heasarc.gsfc.masa.gov/fitsio)
+* X11
+* INDI (including all the development tools needed to compile INDI clients: libindiclient.*)
+* Misc libraries: ceres, lpthread, rt, glog, gsl, gslcblas, m
+
+# Environment Variables
+
+In order to compile, you need to set the environment variable INTERFACE to either INDI or NATIVE. (If you don't set this variable, you'll get a pretty immediate error message)
+
+# Compiling
+
+Within the root directory of the system you're building (e.g., "/something/AstroSystem"), create the empty directory "BIN" to hold the final executables.
+
+Type "make all"
+
