@@ -53,7 +53,7 @@ int focus_fd;	/* file descriptor for the focuser */
 void initialize_jmi(void) {
   struct termios term_struct;
 
-  focus_fd = open("/dev/ttyS0", O_RDWR);
+  focus_fd = open("/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_BSCBe11BS13-if00-port0", O_RDWR);
   if(focus_fd < 0) {
     perror("Unable to open serial connection to JMI SmartFocus");
     record_error("Unable to open serial connection to JMI SmartFocus\n");
