@@ -276,7 +276,8 @@ int main(int argc, char **argv) {
   }  while(move_tries < 4); // should never trip on this
 
 finished:
-  DisconnectINDI();
+  disconnect_camera();
+  disconnect_scope();
   return 0;
 }
 
