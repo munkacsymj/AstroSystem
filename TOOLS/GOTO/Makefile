@@ -1,4 +1,4 @@
-TARGETS = goto focus_star park unpark 
+TARGETS = goto star_sync focus_star park unpark 
 all: $(TARGETS)
 
 goto: goto.o 
