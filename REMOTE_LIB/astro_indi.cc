@@ -397,7 +397,7 @@ void AstroClient::newDevice(INDI::BaseDevice dp) {
 	for (AstroDeviceType dt : kd.devtype) {
 	  switch(dt) {
 	  case ccd_t:
-	    camera = new CAMERA_INDI(this_device, kd.connection_port);
+	    camera = new CAMERA_INDI(this_device, kd.connection_port, kd.local_device_name);
 	    break;
 	  case fine_focus_t:
 	    fine_focuser = new FOCUSER_INDI(this_device, kd.connection_port);
