@@ -865,6 +865,14 @@ exposure_flags::exposure_flags(const char *profile_name) {
     SetGain(profile.GetInt("gain"));
   }
 
+  if (profile.IsDefined("datamax")) {
+    this->e_datamax = profile.GetDouble("datamax");
+  }
+
+  if (profile.IsDefined("invalid_adu")) {
+    this->e_invalid_adu = profile.GetDouble("invalid_adu");
+  }
+
   if (profile.IsDefined("mode")) {
     SetReadoutMode(profile.GetInt("mode"));
   }
