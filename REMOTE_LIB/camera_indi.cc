@@ -22,7 +22,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "st10xme_indi.h"
+#include "camera_indi.h"
 
 #include <system_config.h>
 
@@ -148,8 +148,8 @@ CAMERA_INDI::AddKeywords(unique_ptr<Image> &image) {
   const double cdelt = config.PixelScale() * user_flags.GetBinning();
   info->SetCdelt(cdelt, cdelt);
   info->SetFilter(Filter("None"));
-  info->SetDatamax(user_flags.e_datamax);
-  info->SetInvalidADU(user_flags.e_invalid_adu);
+  info->SetDatamax(user_flags.GetDataMax());
+  info->SetInvalidADU(user_flags.GetInvalidADU());
   // Warning: this is the UNBINNED system gain. Probably misleading in a binned config
   info->SetEGain(this->GetEGain(user_flags.GetGain(), user_flags.GetReadoutMode()));
   JULIAN mid_time((time_t) (this->exposure_start_time + this->user_exp_time));
@@ -260,8 +260,8 @@ CAMERA_INDI::ReceiveImage(exposure_flags &ExposureFlags,
     info = this->new_image->CreateImageInfo();
   }
   const int binning = ExposureFlags.GetBinning();
-  const double DATAMAX = ExposureFlags.e_datamax; // max valid
-  const double INVALID_ADU = ExposureFlags.e_invalid_adu;
+  const double DATAMAX = ExposureFlags.GetDataMax(); // max valid
+  const double INVALID_ADU = ExposureFlags.GetInvalidADU();
   info->SetDatamax(DATAMAX);
   info->SetInvalidADU(INVALID_ADU);
 

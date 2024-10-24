@@ -168,6 +168,16 @@ public:
     e_outputformat = format;
   }
   E_PixelFormat GetOutputFormat(void) { return e_outputformat; }
+
+  void SetDataMax(double data_max) {
+    e_datamax = data_max;
+  }
+  double GetDataMax(void) { return e_datamax; }
+
+  void SetInvalidADU(double invalid_adu) {
+    e_invalid_adu = invalid_adu;
+  }
+  double GetInvalidADU(void) { return e_invalid_adu; }
   
 };
 

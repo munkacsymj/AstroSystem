@@ -25,7 +25,7 @@
 #include "astro_indi.h"
 #include <libindi/basedevice.h>
 #include "blocker_indi.h"
-#include "st10xme_indi.h"
+#include "camera_indi.h"
 #include "cooler_indi.h"
 #include "cfw_indi.h"
 #include "mount_indi.h"
