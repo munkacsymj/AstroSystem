@@ -27,9 +27,15 @@
 
 class Drifter;			// forward declaration
 
+enum CameraModel {
+  CAM_ST10XME,			// old SBIG camera
+  CAM_ST9,			// mark's old camera
+  CAM_QHY268M,			// new camera
+};
+
 class CAMERA_INDI : public LocalDevice {
 public:
-  CAMERA_INDI(AstroDevice *device, const char *connection_port);
+  CAMERA_INDI(AstroDevice *device, const char *connection_port, const char *local_devname);
   ~CAMERA_INDI(void);
 
   bool CAMERAPresent(void) const { return this->dev->is_connected; }
@@ -42,6 +48,8 @@ public:
   char *ReceiveImage(exposure_flags &ExposureFlags,
 		     const char *fits_filename,
 		     const char *purpose);
+
+  CameraModel GetCameraModel(void) { return camera_model; }
   
 
   //char *expose_image(double exposure_time_seconds,
@@ -61,6 +69,7 @@ private:
   double user_exp_time;
   time_t exposure_start_time;
   std::string user_purpose;
+  CameraModel camera_model;
 
   unique_ptr<Image> new_image;
   
@@ -106,7 +115,20 @@ public:
   AstroValueNumber cam_sim_lim_mag {this,"SIMULATOR_SETTINGS", "SIM_LIMITINGMAG"};
   AstroValueNumber cam_sim_noise {this,"SIMULATOR_SETTINGS", "SIM_NOISE"};
   AstroValueNumber cam_sim_skyglow {this,"SIMULATOR_SETTINGS", "SIM_SKYGLOW"};
-
+  // Added for QHY268M
+  AstroValueNumber cam_gain_setting {this, "CCD_GAIN", "GAIN"};
+  AstroValueNumber cam_offset {this, "CCD_OFFSET", "OFFSET"};
+  AstroValueNumber cam_readoutmode {this, "READ_MODE", "MODE"};
+  AstroValueNumber cam_usbtraffic  {this, "USB_TRAFFIC", "TRAFFIC"};
+  AstroValueNumber cam_humidity {this, "CCD_HUMIDITY", "HUMIDITY"};
+  AstroValueSwitch cam_overscan_enable {this, "OVERSCAN_MODE", "INDI_ENABLED"};
+  AstroValueSwitch cam_overscan_disable {this, "OVERSCAN_MODE", "INDI_DISABLED"};
+  AstroValueSwitch cam_abort_exposure {this, "CCD_ABORT_EXPOSURE", "ABORT"};
+  AstroValueSwitch cam_reset_frame {this, "CCD_FRAME_RESET", "RESET"};
+  AstroValueNumber cam_pixelsizex {this, "CCD_INFO", "CCD_PIXEL_SIZE_X"};
+  AstroValueNumber cam_pixelsizey {this, "CCD_INFO", "CCD_PIXEL_SIZE_Y"};
+  AstroValueNumber cam_bitsperpixel {this, "CCD_INFO", "CCD_BITSPERPIXEL"};
+  
   friend void CAMERAPropertyUpdate(INDI::Property property);
 
 };

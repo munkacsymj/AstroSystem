@@ -29,8 +29,21 @@
 //****************************************************************
 //        Constructor, Destructor
 //****************************************************************
-CAMERA_INDI::CAMERA_INDI(AstroDevice *device, const char *connection_port) :
+CAMERA_INDI::CAMERA_INDI(AstroDevice *device, const char *connection_port, const char *local_devname) :
   LocalDevice(device, connection_port), dev(device) {
+  //********************************
+  // Set up camera_model
+  //********************************
+  if (strcmp(local_devname, "ST-10XME") == 0) {
+    this->camera_model = CAM_ST10XME;
+  } else if (strcmp(local_devname, "QHY268M") == 0) {
+    this->camera_model = CAM_QHY268M;
+  } else {
+    std::cerr << "CAMERA_INDI: camera name '" << local_devname << "' not recognized.\n";
+    INDIDisconnectINDI();
+    exit(-2);
+  }
+  
   this->DoINDIRegistrations();
   dev->indi_device.watchProperty("CCD1",
 				 [this](INDI::Property p) {
@@ -96,7 +109,7 @@ double
 CAMERA_INDI::GetEGain(long gain_setting, int readoutmode) {
   // egain is system gain
   SystemConfig config;
-  if (config.IsQHY268M()) {
+  if (this->camera_model == CAM_QHY268M) {
     double egain = 0.0;
     switch(readoutmode) {
     case 0:
@@ -115,9 +128,9 @@ CAMERA_INDI::GetEGain(long gain_setting, int readoutmode) {
       break;
     }
     return egain;
-  } else if (config.IsST10()) {
+  } else if (this->camera_model == CAM_ST10XME) {
     return 1.3; // This needs to be measured; the value here is taken from online documentation
-  } else if (config.IsST9()) {
+  } else if (this->camera_model == CAM_ST9) {
     return 2.2;			// again, comes from Company7 online documentation, not measurement
   } else {
     std::cerr << "ERROR: CAMERA_INDI: camera type unknown.\n";
@@ -135,13 +148,19 @@ CAMERA_INDI::AddKeywords(unique_ptr<Image> &image) {
   const double cdelt = config.PixelScale() * user_flags.GetBinning();
   info->SetCdelt(cdelt, cdelt);
   info->SetFilter(Filter("None"));
-  info->SetDatamax(65530.0 * user_flags.GetBinning() * user_flags.GetBinning());
+  info->SetDatamax(user_flags.e_datamax);
+  info->SetInvalidADU(user_flags.e_invalid_adu);
   // Warning: this is the UNBINNED system gain. Probably misleading in a binned config
   info->SetEGain(this->GetEGain(user_flags.GetGain(), user_flags.GetReadoutMode()));
   JULIAN mid_time((time_t) (this->exposure_start_time + this->user_exp_time));
   info->SetExposureStartTime(mid_time);
   info->SetPurpose(this->user_purpose.c_str());
   info->SetBinning(user_flags.GetBinning());
+  if (this->camera_model == CAM_QHY268M) {
+    info->SetOffset(user_flags.GetOffset());
+    info->SetReadmode(user_flags.GetReadoutMode());
+    info->SetCamGain(user_flags.GetGain());
+  }
 }
 
 int
@@ -199,6 +218,20 @@ CAMERA_INDI::ExposureStart(double exposure_time_seconds,
   //cm.SetOffset(ExposureFlags.GetOffset());
   //cm.SetUSBTraffic(ExposureFlags.USBTraffic());
 
+  if (this->camera_model == CAM_QHY268M) {
+    this->cam_readoutmode.setValue(ExposureFlags.GetReadoutMode());
+    this->dev->local_client->sendNewNumber(this->cam_readoutmode.property->indi_property);
+    
+    this->cam_gain_setting.setValue(ExposureFlags.GetGain());
+    this->dev->local_client->sendNewNumber(this->cam_gain_setting.property->indi_property);
+    
+    this->cam_offset.setValue(ExposureFlags.GetOffset());
+    this->dev->local_client->sendNewNumber(this->cam_offset.property->indi_property);
+    
+    this->cam_usbtraffic.setValue(ExposureFlags.USBTraffic());
+    this->dev->local_client->sendNewNumber(this->cam_usbtraffic.property->indi_property);
+  }
+    
   this->blob_blocker.Setup(); // prep the blocker
   this->cam_exposure_time.setValue(this->user_exp_time); // starts the exposure
   this->dev->local_client->sendNewNumber(this->cam_exposure_time.property->indi_property);
@@ -227,10 +260,19 @@ CAMERA_INDI::ReceiveImage(exposure_flags &ExposureFlags,
     info = this->new_image->CreateImageInfo();
   }
   const int binning = ExposureFlags.GetBinning();
-  constexpr unsigned long DATAMAX = 57000;
+  const double DATAMAX = ExposureFlags.e_datamax; // max valid
+  const double INVALID_ADU = ExposureFlags.e_invalid_adu;
+  info->SetDatamax(DATAMAX);
+  info->SetInvalidADU(INVALID_ADU);
 
   if (binning == 1) {
-    info->SetDatamax(DATAMAX);
+    for (int row=0; row<this->new_image->height; row++) {
+      for (int col=0; col<this->new_image->width; col++) {
+	if (this->new_image->pixel(col, row) > DATAMAX) {
+	  this->new_image->pixel(col, row) = INVALID_ADU;
+	}
+      }
+    }
     this->new_image->WriteFITS16(fits_filename);
   } else {
     // Need to bin the image: 32-bit output
@@ -244,7 +286,6 @@ CAMERA_INDI::ReceiveImage(exposure_flags &ExposureFlags,
     info->PullFrom(this->new_image->GetImageInfo());
     int num_saturated = 0;
     info->SetBinning(binning);
-    info->SetDatamax(DATAMAX*binning*binning);
 
     // This count *output* row (i.e., row in the final file, not the blob)
     for (int row=0; row<tgt_h; row++) {
@@ -260,7 +301,7 @@ CAMERA_INDI::ReceiveImage(exposure_flags &ExposureFlags,
 	  }
 	}
 	if (overflow) {
-	  tgt = DATAMAX*binning*binning;
+	  tgt = INVALID_ADU;
 	  num_saturated++;
 	}
 	target.pixel(col,row) = tgt;
