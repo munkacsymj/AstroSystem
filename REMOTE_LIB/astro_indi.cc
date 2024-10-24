@@ -86,6 +86,8 @@ static std::list<KnownDevice> predefined_devices {
    {&fine_focus_dev}, {fine_focus_t}, "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_BSCBe11BS13-if00-port0"},
   {"SBIG CCD", "ST-10XME",
    {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t}, nullptr},
+  {"QHY CCD QHY268M-d7178a4", "QHY268M",
+   {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t, cfw_t}, nullptr},
   {"Focuser Simulator", "focuser simulator",
    {&fine_focus_dev}, {fine_focus_t}, nullptr}
 };
