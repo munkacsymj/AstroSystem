@@ -2425,6 +2425,16 @@ Image::WriteFITSAuto(const char *filename, bool compress) const {
 }
 
 void
+ImageInfo::DeleteKeyword(const char *keyword) {
+  std::string key_to_delete(keyword);
+  this->keys_to_delete.push_back(key_to_delete);
+  auto element = this->key_values.find(key_to_delete);
+  if (element != this->key_values.end()) {
+    this->key_values.erase(element);
+  }
+}
+
+void
 ImageInfo::WriteFITS(fitsfile *fitsptr) {
   // This should only be issued once on an open file.  Doing it more
   // than once will have unpredictable effects. In particular, a
@@ -2470,6 +2480,15 @@ ImageInfo::WriteFITS(fitsfile *fitsptr) {
       return;
     }
   }
+
+  //********************************
+  // Get rid of pending keys to be deleted
+  //********************************
+  for (std::string &str : this->keys_to_delete) {
+    int status = 0;
+    fits_delete_key(fptr, str.c_str(), &status);
+  }
+  
   if (use_standalone) {
     if ( fits_close_file(fptr, &status) )
       printerror("fits_close_file, line " LINENO , status );

@@ -33,19 +33,20 @@ public:
 
   int NumCFWPositions(void);
 
+  // user-numbering starts with position 1 (CFW numbering starts with 0)
   int PositionLastRequested(void) const { return commanded_position; }
 
-  int CurrentPosition(void);
+  int CurrentPosition(void); // user-numbering
 
-  bool HasBlackFilter(void) { return false; } // for ST-10XME w/shutter
+  bool HasBlackFilter(void);
 
-  void MoveFilterWheel(int position, bool block=false);
+  void MoveFilterWheel(int position, bool block=false); // user-numbering
   void WaitForFilterWheel(void);
 
   void DoINDIRegistrations(void);
 
 private:
-  int commanded_position;
+  int commanded_position; // user-numbering (i.e., 1..7)
   Blocker blocker;
   AstroDevice *dev {nullptr};
   

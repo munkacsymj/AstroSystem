@@ -199,7 +199,7 @@ SystemConfig::CFWPositions(void) const {    // zero means no CFW available
     std::cerr << "ERROR: no cfw_positions in system_config.json\n";
     throw std::runtime_error("Invalid system_config.json file");
   }
-  return filter_count->second->Value_double();
+  return filter_count->second->Value_int();
 }
 
 std::string

@@ -93,6 +93,7 @@ CAMERA_INDI::FetchImage(INDI::Property indi_prop) {
       }
       close(fd);
       this->new_image = make_unique<Image>(pathname.c_str());
+      this->DeleteUnusedKeywords(this->new_image);
       this->AddKeywords(this->new_image);
 
       //std::cerr << "Image received: "
@@ -138,6 +139,31 @@ CAMERA_INDI::GetEGain(long gain_setting, int readoutmode) {
   return 1.0; // maybe should just trigger an assertion fault here instead?
 }
   
+static std::list<string> keywords_to_kill {
+  "PIXSIZE1",
+  "PIXSIZE2",
+  "XBINNING",
+  "YBINNING",
+  "SITELONG",
+  "CCD-TEMP",
+  "OBJCTAZ",
+  "OBJCTDEC",
+  "OBJCTALT",
+  "OBJCTRA",
+  "EXPTIME",
+  "SCALE",
+  "GAIN",
+  "RA",
+  "DEC" };
+
+void
+CAMERA_INDI::DeleteUnusedKeywords(unique_ptr<Image> &image) {
+  ImageInfo *info = image->GetImageInfo();
+  for (std::string &key : keywords_to_kill) {
+    info->DeleteKeyword(key.c_str());
+  }
+}
+
 void
 CAMERA_INDI::AddKeywords(unique_ptr<Image> &image) {
   SystemConfig config;		// fetches current info from system config file

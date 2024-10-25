@@ -87,7 +87,7 @@ static std::list<KnownDevice> predefined_devices {
   {"SBIG CCD", "ST-10XME",
    {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t}, nullptr},
   {"QHY CCD QHY268M-d7178a4", "QHY268M",
-   {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t, cfw_t}, nullptr},
+   {&ccd_dev, &cooler_dev, &cfw_dev}, {ccd_t, cooler_t, cfw_t}, nullptr},
   {"Focuser Simulator", "focuser simulator",
    {&fine_focus_dev}, {fine_focus_t}, nullptr}
 };

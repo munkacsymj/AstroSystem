@@ -1,6 +1,9 @@
 all: ../ASTRO_LIB/libastro.so libsession_lib.a libsession_lib.so libsession_lib.o \
 	libscript_lib.a libscript_lib.so libscript_lib.o test_oa test_plan_exposure \
 
+libs: libsession_lib.a libsession_lib.so libsession_lib.o \
+	libscript_lib.a libscript_lib.so libscript_lib.o \
+
 
 ../ASTRO_LIB/libastro.so : libsession_lib.a libsession_lib.so libsession_lib.o
 	(cd ../ASTRO_LIB;make all)

@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <system_config.h>
 
 #include "astro_indi.h"
 #include "cfw_indi.h"
@@ -49,12 +50,14 @@ CFW_INDI::NumCFWPositions(void) {
 int
 CFW_INDI::CurrentPosition(void) {
   if (this->dev == nullptr) return 0;
-  return (int) (0.5 + cfw_slot.getValue());
+  // The "-0.5" converts back to user-numbering
+  return (int) (-0.5 + cfw_slot.getValue());
 }
 
 void
 CFW_INDI::WaitForFilterWheel(void) {
   if (this->dev == nullptr) return;
+  int max_tries = 3; // 3*10sec = 30sec
   do {
     blocker.Wait(10*1000); // wait for position update
     if (CurrentPosition() == PositionLastRequested()) {
@@ -63,11 +66,23 @@ CFW_INDI::WaitForFilterWheel(void) {
       // is there an opportunity for a race problem here?
       blocker.Setup();
     }
+    if (max_tries-- == 0) {
+      std::cerr << "CFW: timed out.\n";
+      break;
+    }
   } while(1); // needs a timeout
+  return;
+}
+
+bool
+CFW_INDI::HasBlackFilter(void) {
+  return system_config.IsQHY268M();
 }
 
 void
 CFW_INDI::MoveFilterWheel(int position, bool block) {
+  std::cerr << "Moving filter wheel to user position "
+	    << position << '\n';
   this->commanded_position = position;
   if (this->dev == nullptr) return;
   
@@ -75,14 +90,10 @@ CFW_INDI::MoveFilterWheel(int position, bool block) {
     blocker.Setup(); // should return immediately
   }
 
-  cfw_slot.setValue(position);
+  cfw_slot.setValue(this->commanded_position+1);
   this->dev->local_client->sendNewNumber(this->cfw_slot.property->indi_property);
   if (block) {
-    int retval = blocker.Wait(10/*seconds*/*1000/*milliseconds*/);
-    if (retval) {
-      std::cerr << "CFW::MoveFilterWheel: "
-		<< strerror(retval) << std::endl;
-    }
+    this->WaitForFilterWheel();
   }
 }
 

@@ -1,14 +1,15 @@
-//#include <gsl/gsl_vector.h>
-//#include <gsl/gsl_matrix.h>
-//#include <gsl/gsl_permutation.h>
-//#include <gsl/gsl_linalg.h>
-#include "/home/mark/gsl-2.4/gsl/gsl_vector.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_matrix.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_rng.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_blas.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_multifit.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_permutation.h"
-#include "/home/mark/gsl-2.4/gsl/gsl_linalg.h"
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_permutation.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_multifit.h>
+//#include "/home/mark/gsl-2.4/gsl/gsl_vector.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_matrix.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_rng.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_blas.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_multifit.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_permutation.h"
+//#include "/home/mark/gsl-2.4/gsl/gsl_linalg.h"
 
 
 #include <Image.h>

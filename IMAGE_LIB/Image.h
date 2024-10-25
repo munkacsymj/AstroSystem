@@ -31,6 +31,7 @@
 #include "wcs.h"
 
 #include <string>
+#include <list>
 #include <unordered_map>
 using namespace std;
 
@@ -66,6 +67,8 @@ public:
   ////////////////////////////////
   void WriteFITS(fitsfile *fptr=nullptr); // for *both* "linked" and
 					  // "standalone" ImageInfo
+
+  void DeleteKeyword(const char *keyword);
 
   ////////////////////////////////
   //        VALID checks
@@ -218,6 +221,8 @@ public:
 private:
   std::unordered_map<string, string> key_values;
   std::unordered_map<string, string> key_comments;
+
+  std::list<string> keys_to_delete;
 
   const WCS    *wcs;		// coordinate conversion
 

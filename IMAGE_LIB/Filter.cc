@@ -23,7 +23,9 @@
 #include <list>
 #include <vector>
 #include <string>
+#include <iostream>
 #include "Filter.h"
+#include <system_config.h>
 
 // Warning! Filter information is stored by the camera server in a
 // file that uses the integer values in the following definitions. If
@@ -80,6 +82,8 @@ struct FilterNameXref {
 };
 std::list<FilterNameXref> synonyms
   { { "Invalid", FILTER_Invalid },
+    { "U", FILTER_U },
+    { "Uc", FILTER_U },
     { "Rc", FILTER_Rc },
     { "R", FILTER_Rc },
     { "Bc", FILTER_Bc },
@@ -244,6 +248,11 @@ int GetDefaultFilter(Filter &f) {
   char f_name[64];
   int valid = 0; // later on, will be used as the function's return value
   if (fgets(f_name, sizeof(f_name), fp)) {
+    for (char *s = f_name; *s; s++) {
+      if (*s == ' ' or *s == '\n') {
+	*s = 0;
+      }
+    }
     // successful read
     for(int n=0; n < NUM_FILTERS; n++) {
       if(strcmp(filters[n].filter_name, f_name) == 0) {
@@ -330,6 +339,7 @@ void WriteFilterData(void) {
 }
 
 void ReadFilterData(void) {
+#ifndef USEINDI
   FILE *fp = fopen(FILTER_FILE, "r");
   if(!fp) {
     perror("Cannot find pre-existing filter file.");
@@ -362,8 +372,27 @@ void ReadFilterData(void) {
       }
     }
     fclose(fp);
-    filter_info_available = 1;
   }
+#else // INDI
+#include <system_config.h>
+  const int filter_count = system_config.CFWPositions();
+  num_filters = filter_count;
+  if (num_filters > 0) {
+    std::list<std::string> filter_names = system_config.CFWFilters();
+    int slot = 0;
+    for (std::string &f_name : filter_names) {
+      Filter f(f_name.c_str());
+      filter_slot_info[slot] = f;
+      filters[f.FilterIDIndex()].filter_position = slot;
+      std::cerr << "ReadFilterData: "
+		<< f.CanonicalNameOf()
+		<< " in slot "
+		<< slot << '\n';
+      slot++;
+    }
+  }
+#endif
+  filter_info_available = 1;
 }
 
 // Position-counting starts with '0'

@@ -63,6 +63,7 @@ public:
 private:
   void FetchImage(INDI::Property indi_prop);
   void AddKeywords(unique_ptr<Image> &image);
+  void DeleteUnusedKeywords(unique_ptr<Image> &image);
   double GetEGain(long gain_setting, int readoutmode);
   
   exposure_flags user_flags;

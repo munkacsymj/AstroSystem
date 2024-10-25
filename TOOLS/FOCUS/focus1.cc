@@ -16,11 +16,19 @@
  *   along with this program (file: COPYING).  If not, see
  *   <http://www.gnu.org/licenses/>. 
  */
+#if 0
 #include "/home/mark/gsl-2.4/gsl/gsl_vector.h"
 #include "/home/mark/gsl-2.4/gsl/gsl_matrix.h"
 #include "/home/mark/gsl-2.4/gsl/gsl_rng.h"
 #include "/home/mark/gsl-2.4/gsl/gsl_blas.h"
 #include "/home/mark/gsl-2.4/gsl/gsl_multifit.h"
+#else
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_multifit.h>
+#endif
 #include <stdio.h>
 #include <Image.h>
 #include <scope_api.h>
