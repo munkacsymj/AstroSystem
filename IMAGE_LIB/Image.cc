@@ -87,6 +87,7 @@ struct FITSComment {
 		    { "INSTRUME", " Camera identifier" },
 		    { "CALSTAT", " Calibrations applied (B, D, F, L)" },
 		    { "DATAMAX", " [ADU] Highest ADU pixel value not saturated" },
+		    { "INVALADU", "[ADU] Invalid ADU level (saturation trigger)" },
 		    { "XBINNING", " Binning factor in the X direction" },
 		    { "YBINNING", " Binning factor in the Y direction" },
 		    { "BINNING", " Binning factor applied in both the X and Y directions" },
@@ -2196,6 +2197,13 @@ ImageInfo::SetDatamax(double data_max) { // 65,530.0, typical
 }
 
 void
+ImageInfo::SetInvalidADU(double invalid_adu) { // 65535.0 typical
+  char buffer[32];
+  sprintf(buffer, "%lf", invalid_adu);
+  SetValue(string("INVALADU"), string(buffer));
+}
+
+void
 ImageInfo::SetFrameXY(int x, int y) {
   char buffer[32];
   sprintf(buffer, "%d", x);
@@ -2710,6 +2718,10 @@ Image::bin(int binning) const {
 
   if (orig_info->DatamaxValid()) {
     info->SetDatamax(orig_info->GetDatamax()*binning*binning);
+  }
+
+  if (orig_info->InvalidADUValid()) {
+    info->SetInvalidADU(orig_info->GetInvalidADU()*binning*binning);
   }
   return i;
 }

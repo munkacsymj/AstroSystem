@@ -25,7 +25,7 @@
 #include "astro_indi.h"
 #include <libindi/basedevice.h>
 #include "blocker_indi.h"
-#include "st10xme_indi.h"
+#include "camera_indi.h"
 #include "cooler_indi.h"
 #include "cfw_indi.h"
 #include "mount_indi.h"
@@ -88,6 +88,8 @@ static std::list<KnownDevice> predefined_devices {
    {&fine_focus_dev}, {fine_focus_t}, "/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_743019931886eb11b602901ab7d59897-if00-port0"},
   {"SBIG CCD", "ST-10XME",
    {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t}, nullptr},
+  {"QHY CCD QHY268M-d7178a4", "QHY268M",
+   {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t, cfw_t}, nullptr},
   {"Focuser Simulator", "focuser simulator",
    {&fine_focus_dev}, {fine_focus_t}, nullptr}
 };
@@ -400,7 +402,7 @@ void AstroClient::newDevice(INDI::BaseDevice dp) {
 	for (AstroDeviceType dt : kd.devtype) {
 	  switch(dt) {
 	  case ccd_t:
-	    camera = new CAMERA_INDI(this_device, kd.connection_port);
+	    camera = new CAMERA_INDI(this_device, kd.connection_port, kd.local_device_name);
 	    break;
 	  case fine_focus_t:
 	    fine_focuser = new FOCUSER_INDI(this_device, kd.connection_port);

@@ -80,6 +80,8 @@ private:
   int e_offset { 5 };
   double e_usbtraffic {0};
   E_PixelFormat e_outputformat { E_uint16 };
+  double e_datamax {65530.0 }; // maximum VALID ADU value
+  double e_invalid_adu {65535.0}; // always invalid
   
   // see Filter.cc for values that can be found here
   static const int E_FILTER_MASK = 0xf0;
@@ -166,6 +168,16 @@ public:
     e_outputformat = format;
   }
   E_PixelFormat GetOutputFormat(void) { return e_outputformat; }
+
+  void SetDataMax(double data_max) {
+    e_datamax = data_max;
+  }
+  double GetDataMax(void) { return e_datamax; }
+
+  void SetInvalidADU(double invalid_adu) {
+    e_invalid_adu = invalid_adu;
+  }
+  double GetInvalidADU(void) { return e_invalid_adu; }
   
 };
 

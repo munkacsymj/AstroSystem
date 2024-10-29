@@ -29,8 +29,10 @@
 struct ValueKeywordPair {
   const char *keyword;
   bool value_is_string;
+  bool value_is_double;
   const char *string_val;
   int int_val;
+  double double_val;
 };
 
 class ImageProfile {
@@ -39,6 +41,7 @@ public:
 
   bool IsDefined(const char *keyword);
   int GetInt(const char *keyword);
+  double GetDouble(const char *keyword);
   const char *GetChar(const char *keyword);
 
 private:

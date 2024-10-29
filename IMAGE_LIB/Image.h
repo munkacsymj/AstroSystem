@@ -99,6 +99,7 @@ public:
   int CameraValid(void)            { return KeywordPresent("CAMERA"); }
   int BinningValid(void)           { return KeywordPresent("BINNING"); }
   int DatamaxValid(void)           { return KeywordPresent("DATAMAX"); }
+  int InvalidADUValid(void)        { return KeywordPresent("INVALADU"); }
   int FrameXYValid(void)           { return (KeywordPresent("FRAMEX") and
                                                   KeywordPresent("FRAMEY")); }
 
@@ -155,6 +156,7 @@ public:
   int    GetOffset(void) { return GetValueInt("OFFSET"); }
   int    GetBinning(void) { return GetValueInt("BINNING"); }
   double GetDatamax(void) { return GetValueDouble("DATAMAX"); }
+  double GetInvalidADU(void) { return GetValueDouble("INVALADU"); }
   int    GetFrameX(void) { return GetValueInt("FRAMEX"); }
   int    GetFrameY(void) { return GetValueInt("FRAMEY"); }
   
@@ -197,6 +199,7 @@ public:
   void    SetOffset(int offset);   // 0..255
   void    SetBinning(int binning); // 0..9
   void    SetDatamax(double data_max); // 65,530.0, typical
+  void    SetInvalidADU(double invalid_adu); // 65,535 typical
   void    SetFrameXY(int x, int y);
 
   bool KeywordPresent(const string &keyword);

@@ -36,6 +36,15 @@ ImageProfile::GetInt(const char *keyword) {
   return -1; // Not a very good error return...
 }
 
+double
+ImageProfile::GetDouble(const char *keyword) {
+  ValueKeywordPair *pair = FindByKeyword(keyword);
+  if (pair and not pair->value_is_double) return pair->double_val;
+  fprintf(stderr, "ImageProfile::GetDouble(%s): type mismatch.\n",
+	  keyword);
+  return -1;
+}
+
 const char *
 ImageProfile::GetChar(const char *keyword) {
   ValueKeywordPair *pair = FindByKeyword(keyword);
@@ -131,6 +140,10 @@ ImageProfile::ImageProfile(const char *profile_name, JSON_Expression *tree) {
   // "content", and "base")
   const JSON_Expression *base_expr = match->Value("base");
   if (base_expr) {
+    // Recursively parse the included pieces of the profile. Each time
+    // we recurse, we add keyword/value pairs to "this" object, so
+    // that they accumulate. The recursion order ensures that value
+    // overriding works correctly.
     ImageProfile base_profile(base_expr->Value_string().c_str(), tree);
     keywords = base_profile.keywords;
   }
@@ -143,6 +156,8 @@ ImageProfile::ImageProfile(const char *profile_name, JSON_Expression *tree) {
 					    "compress",
 					    "usb_traffic",
 					    "format",
+					    "datamax", // definition per FITS spec
+					    "invalid_adu", // e.g., 65,535
 					    "box_bottom",
 					    "box_top",
 					    "box_left",
@@ -157,8 +172,11 @@ ImageProfile::ImageProfile(const char *profile_name, JSON_Expression *tree) {
 	  this_pair->keyword = strdup(keyword.c_str());
 	}
 	this_pair->value_is_string = this_value->IsString();
+	this_pair->value_is_double = this_value->IsDouble();
 	if (this_pair->value_is_string) {
 	  this_pair->string_val = strdup(this_value->Value_string().c_str());
+	} else if (this_pair->value_is_double) {
+	  this_pair->double_val = this_value->Value_double();
 	} else {
 	  this_pair->int_val = this_value->Value_int();
 	}
@@ -247,6 +265,8 @@ void PrintImageProfiles(FILE *fp) {
 	fprintf(fp, "%7s ", "");
       } else if(value->value_is_string) {
 	fprintf(fp, "%7s ", value->string_val);
+      } else if(value->value_is_double) {
+	fprintf(fp, "%7lf ", value->double_val);
       } else {
 	fprintf(fp, "%7d ", value->int_val);
       }
