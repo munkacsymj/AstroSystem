@@ -1,6 +1,10 @@
 TARGETS =  flip mount # show_mount_model check_alignment star_sync_test
 all: $(TARGETS)
 
+measure_backlash: measure_backlash.o
+	$(CXXLD) measure_backlash.o -o measure_backlash $(LIB_DIR) $(ALL_LIBS)
+	ln -f -s $(PWD)/measure_backlash $(BIN_DIR)/measure_backlash
+
 show_mount_model: show_mount_model.o
 	$(CXXLD) show_mount_model.o -o show_mount_model $(LIB_DIR) $(ALL_LIBS)
 
