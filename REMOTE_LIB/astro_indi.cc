@@ -84,6 +84,8 @@ static std::list<KnownDevice> predefined_devices {
    {&ccd_dev,&cooler_dev,&dummy_unused_device}, {ccd_t,cooler_t,cfw_t}, nullptr},
   {"SmartFocus", "JMI focuser",
    {&fine_focus_dev}, {fine_focus_t}, "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_BSCBe11BS13-if00-port0"},
+  {"Esatto", "ESATTO focuser",
+   {&fine_focus_dev}, {fine_focus_t}, "/dev/serial/by-id/usb-Silicon_Labs_CP2102N_USB_to_UART_Bridge_Controller_743019931886eb11b602901ab7d59897-if00-port0"},
   {"SBIG CCD", "ST-10XME",
    {&ccd_dev, &cooler_dev, &dummy_unused_device}, {ccd_t, cooler_t}, nullptr},
   {"QHY CCD QHY268M-d7178a4", "QHY268M",
@@ -391,6 +393,7 @@ void AstroClient::newDevice(INDI::BaseDevice dp) {
 
     bool dev_found = false;
     for (const KnownDevice &kd : predefined_devices) {
+      //std::cerr << "comparing " << kd.indi_device_name << " to " << indi_name << std::endl;
       if (strcmp(kd.indi_device_name, indi_name) == 0) {
 	dev_found = true;
 	for (AstroDevice **p : kd.dev_pointers) {
