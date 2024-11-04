@@ -22,6 +22,8 @@
 #include "blocker_indi.h"
 #include "astro_indi.h"
 
+class CCDCamera;
+
 class CCDCooler : public LocalDevice {
 public:
   CCDCooler(AstroDevice *device, const char *connection_port);
@@ -36,8 +38,9 @@ public:
   void SetPower(double power);
   
   bool TempAvail(void) { return ccd_temp.available; }
-  double GetSetpoint(void) { return commanded_setpoint; }
-  double GetCCDTemp(void) { return ccd_temp.getValue(); }
+  double GetSetpoint(void) { return cooler_tgt_temp.available ? cooler_tgt_temp.getValue() : 99.9 ; }
+  double GetCCDTemp(void) { return ccd_temp.available ? ccd_temp.getValue() : 99.9 ; }
+  double GetAmbient(void) { return cooler_ambient.available ? cooler_ambient.getValue() : 99.9 ; }
 
   bool HumidityAvail(void) { return ccd_humidity.available; }
   double GetHumidity(void) { return ccd_humidity.getValue(); }
@@ -68,7 +71,17 @@ private:
   AstroValueNumber ccd_humidity{AstroValueNumber(this,"CCD_HUMIDITY", "HUMIDITY")}; // 0..100
   AstroValueSwitch cooler_auto{AstroValueSwitch(this,"CCD_COOLER_MODE", "COOLER_AUTOMATIC")};
   AstroValueSwitch cooler_manual{AstroValueSwitch(this,"CCD_COOLER_MODE", "COOLER_MANUAL")};
+  AstroValueNumber cooler_tgt_temp{AstroValueNumber(this,"COOLER_RQSTS", "TEMP_TGT")};
+  AstroValueNumber cooler_tgt_pwm{AstroValueNumber(this,"COOLER_RQSTS", "POWER_TGT")};
+  AstroValueNumber cooler_ambient{AstroValueNumber(this, "CCD_AMBIENT", "AMBIENT")};
 
+  AstroValueSwitch cooler_firmware_ctl{AstroValueSwitch(this,"TEMP_REG_MODE", "FIRMWARE_MODE")};
+  AstroValueSwitch cooler_startup_pwr_ctl{AstroValueSwitch(this,"TEMP_REG_MODE", "STARTUP_PWR_TGT")};
+  AstroValueSwitch cooler_startup_temp_ctl{AstroValueSwitch(this,"TEMP_REG_MODE", "STARTUP_TEMP_TGT")};
+  AstroValueSwitch cooler_shutdown_ctl{AstroValueSwitch(this,"TEMP_REG_MODE", "SHUTDOWN")};
+  AstroValueSwitch cooler_indi_ctl{AstroValueSwitch(this,"TEMP_REG_MODE", "INDI_MODE")};
+  
+  void Initialize(void);
   friend class CoolerCommand;
 };
 

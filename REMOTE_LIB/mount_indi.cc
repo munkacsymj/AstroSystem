@@ -101,11 +101,14 @@ MOUNT_INDI::MoveTo(DEC_RA &location, int encourage_flip) { // returns immediatel
     this->mount_debug_enable.setState(ISS_ON);
     this->mount_debug_disable.setState(ISS_OFF);
     this->dev->local_client->sendNewSwitch(this->mount_debug_enable.property->indi_property);
-    while(not (this->mount_log_file.available and this->mount_log_debug.available)) {
+    while(not (this->mount_log_file.available and
+	       this->mount_log_debug.available and
+	       this->mount_log_client.available)) {
       std::cerr << "   ...waiting for logging info to be available.\n";
       sleep(1);
     }
     this->mount_log_file.setState(ISS_ON);
+    this->mount_log_client.setState(ISS_OFF);
     this->dev->local_client->sendNewSwitch(this->mount_log_file.property->indi_property);
     this->mount_log_debug.setState(ISS_ON);
     this->dev->local_client->sendNewSwitch(this->mount_log_debug.property->indi_property);

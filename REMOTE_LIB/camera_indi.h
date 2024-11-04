@@ -107,6 +107,7 @@ public:
   AstroValueSwitch cam_log_sess  {this,"LOGGING_LEVEL", "LOG_SESSION"};
   AstroValueSwitch cam_log_debug {this,"LOGGING_LEVEL", "LOG_DEBUG"};
   AstroValueSwitch cam_log_file  {this,"LOG_OUTPUT", "FILE_DEBUG"};
+  AstroValueSwitch cam_log_client {this,"LOG_OUTPUT", "CLIENT_DEBUG"};
   AstroValueNumber cam_sim_xres {this,"SIMULATOR_SETTINGS", "SIM_XRES"};
   AstroValueNumber cam_sim_yres {this,"SIMULATOR_SETTINGS", "SIM_YRES"};
   AstroValueNumber cam_sim_xsize {this,"SIMULATOR_SETTINGS", "SIM_XSIZE"}; // pixel size, microns
