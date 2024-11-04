@@ -173,7 +173,7 @@ CAMERA_INDI::AddKeywords(unique_ptr<Image> &image) {
   info->SetExposureDuration(this->user_exp_time);
   const double cdelt = config.PixelScale() * user_flags.GetBinning();
   info->SetCdelt(cdelt, cdelt);
-  info->SetFilter(Filter("None"));
+  info->SetFilter(user_flags.FilterRequested());
   info->SetDatamax(user_flags.GetDataMax());
   info->SetInvalidADU(user_flags.GetInvalidADU());
   // Warning: this is the UNBINNED system gain. Probably misleading in a binned config
@@ -203,12 +203,13 @@ CAMERA_INDI::ExposureStart(double exposure_time_seconds,
 
   // enable logging if not already done
   if (this->cam_debug_enable.getState() == ISS_OFF) {
-    //std::cerr << "CAMERA_INDI: enabling debug logging.\n";
+    std::cerr << "CAMERA_INDI: enabling debug logging.\n";
     this->cam_debug_enable.setState(ISS_ON);
     this->cam_debug_disable.setState(ISS_OFF);
     this->dev->local_client->sendNewSwitch(this->cam_debug_enable.property->indi_property);
     sleep(1);
     this->cam_log_file.setState(ISS_ON);
+    this->cam_log_client.setState(ISS_OFF);
     this->dev->local_client->sendNewSwitch(this->cam_log_file.property->indi_property);
     this->cam_log_debug.setState(ISS_ON);
     this->dev->local_client->sendNewSwitch(this->cam_log_debug.property->indi_property);
