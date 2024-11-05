@@ -55,6 +55,7 @@ CoolerCommand::Send(void) {
     }
     return 0;
   }
+    
   // cooler exists
   int return_code = 1;
   switch(this->mode) {
@@ -70,15 +71,18 @@ CoolerCommand::Send(void) {
     if (cooler->cooler_on.getState() != ISS_ON) {
       cooler->cooler_off.setState(ISS_OFF);
       cooler->cooler_on.setState(ISS_ON);
+      std::cerr << "CoolerCommand::Send(): sending cooler ON property\n";
       cooler->cooler_off.SendINDIUpdate(); // sends both values
     }
     if (cooler->cooler_manual.available and
 	cooler->cooler_manual.getState() != ISS_ON) {
       cooler->cooler_manual.setState(ISS_ON);
       cooler->cooler_auto.setState(ISS_OFF);
+      std::cerr << "CoolerCommand::Send(): sending cooler MANUAL property\n";
       cooler->cooler_manual.SendINDIUpdate();
     }
-    cooler->cooler_power.setValue(this->Power); // range 0..1
+    cooler->cooler_power.setValue(100.0*this->Power); // range 0..1
+    std::cerr << "CoolerCommand::Send(): sending set_power property\n";
     cooler->cooler_power.SendINDIUpdate();
       
     break;
@@ -122,7 +126,7 @@ CoolerCommand::Send(void) {
 
 CCDCooler::CCDCooler(AstroDevice *device, const char *connection_port) :
   LocalDevice(device, connection_port), dev(device) {
-  ; // this->DoINDIRegistrations();
+  this->Initialize();
 }
 
 CCDCooler::~CCDCooler(void) {
@@ -149,7 +153,7 @@ CCDCooler::GetCoolerData(double *ambient_temp,
   }
 
   *ccd_temp = this->GetCCDTemp();
-  *ambient_temp = 0.0;
+  *ambient_temp = ( this->cooler_ambient.available ? this->cooler_ambient.getValue() : 99.9 );
   *cooler_setpoint = this->GetSetpoint();
   *cooler_power = this->GetPower();
   *humidity = (this->ccd_humidity.available ? this->ccd_humidity.getValue() : 0.0);
@@ -193,5 +197,12 @@ CCDCooler::SetPower(double power) {
   this->dev->local_client->sendNewNumber(this->cooler_power.property->indi_property);
 }
 
-
+void
+CCDCooler::Initialize(void) {
+  cooler_firmware_ctl.Initialize(ISS_OFF);
+  cooler_startup_pwr_ctl.Initialize(ISS_OFF);
+  cooler_startup_temp_ctl.Initialize(ISS_OFF);
+  cooler_shutdown_ctl.Initialize(ISS_OFF);
+  cooler_indi_ctl.Initialize(ISS_ON);
+}
 

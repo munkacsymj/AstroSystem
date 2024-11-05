@@ -129,6 +129,19 @@ public:
   virtual void DoInitialize(void) = 0;
 };
 
+class AstroInitializeSwitch : public AstroInitialize {
+public:
+  AstroInitializeSwitch(AstroValueSwitch *var, ISState init_value) :
+    AstroInitialize(var),
+    value(init_value),
+    sw_element(var) {;}
+  ~AstroInitializeSwitch(void) {;}
+  virtual void DoInitialize(void);
+protected:
+  ISState value;
+  AstroValueSwitch *sw_element;
+};
+
 class AstroInitializeText : public AstroInitialize {
 public:
   AstroInitializeText(AstroValueText *var, const char *init_value) :
@@ -147,6 +160,13 @@ AstroInitializeNumber::DoInitialize(void) {
   num_element->setValue(this->value);
   this->property = num_element->property;
   this->property->device->local_client->sendNewNumber(property->indi_property);
+}
+
+void
+AstroInitializeSwitch::DoInitialize(void) {
+  sw_element->setState(this->value);
+  this->property = sw_element->property;
+  this->property->device->local_client->sendNewSwitch(property->indi_property);
 }
 
 void
@@ -249,7 +269,6 @@ AstroProperty::AstroProperty(INDI::Property property, AstroDevice *dev) :
 	  this->initialization_list.push_back(x);
 	}
 	item->initialization_list.clear();
-	break;
       }
     }
 #ifdef LISTNEWPROPERTIES
@@ -773,6 +792,12 @@ void
 AstroValueText::Initialize(const char *init) {
   AstroInitializeText *ait = new AstroInitializeText(this, init);
   this->initialization_list.push_back(ait);
+}
+
+void
+AstroValueSwitch::Initialize(ISState value) {
+  AstroInitializeSwitch *ais = new AstroInitializeSwitch(this, value);
+  this->initialization_list.push_back(ais);
 }
 
 void
