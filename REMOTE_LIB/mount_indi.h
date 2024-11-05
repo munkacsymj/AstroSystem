@@ -122,6 +122,7 @@ private:
   AstroValueSwitch mount_log_sess  {this,"LOGGING_LEVEL", "LOG_SESSION"};
   AstroValueSwitch mount_log_debug {this,"LOGGING_LEVEL", "LOG_DEBUG"};
   AstroValueSwitch mount_log_file  {this,"LOG_OUTPUT", "FILE_DEBUG"};
+  AstroValueSwitch mount_log_client {this, "LOG_OUTPUT", "CLIENT_DEBUG"};
   AstroValueText   mount_indi_port {this,"DEVICE_PORT", "PORT"};
   
   friend void MOUNTPropertyUpdate(INDI::Property property);
