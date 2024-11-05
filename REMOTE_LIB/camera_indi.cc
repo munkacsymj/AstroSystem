@@ -173,7 +173,7 @@ CAMERA_INDI::AddKeywords(unique_ptr<Image> &image) {
   info->SetExposureDuration(this->user_exp_time);
   const double cdelt = config.PixelScale() * user_flags.GetBinning();
   info->SetCdelt(cdelt, cdelt);
-  info->SetFilter(Filter("None"));
+  info->SetFilter(user_flags.FilterRequested());
   info->SetDatamax(user_flags.GetDataMax());
   info->SetInvalidADU(user_flags.GetInvalidADU());
   // Warning: this is the UNBINNED system gain. Probably misleading in a binned config
