@@ -64,6 +64,7 @@ FOCUSER_INDI::SetupDebug(void) {
   this->dev->local_client->sendNewSwitch(this->focuser_debug_enable.property->indi_property);
   sleep(1);
   this->focuser_log_file.setState(ISS_ON);
+  this->focuser_log_client.setState(ISS_OFF);
   this->dev->local_client->sendNewSwitch(this->focuser_log_file.property->indi_property);
   this->focuser_log_debug.setState(ISS_ON);
   this->dev->local_client->sendNewSwitch(this->focuser_log_debug.property->indi_property);

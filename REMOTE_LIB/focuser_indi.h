@@ -53,6 +53,7 @@ private:
   AstroValueSwitch focuser_debug_disable {this, "DEBUG", "DISABLE"};
   AstroValueSwitch focuser_log_debug {this,"LOGGING_LEVEL", "LOG_DEBUG"};
   AstroValueSwitch focuser_log_file  {this,"LOG_OUTPUT", "FILE_DEBUG"};
+  AstroValueSwitch focuser_log_client {this,"LOG_OUTPUT", "CLIENT_DEBUG"};
   
   void SetupDebug(void);
 
