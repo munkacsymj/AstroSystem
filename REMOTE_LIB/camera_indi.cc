@@ -228,23 +228,11 @@ CAMERA_INDI::ExposureStart(double exposure_time_seconds,
     this->cam_type_flat.setState(ISS_OFF);
   }
   this->dev->local_client->sendNewSwitch(this->cam_type_flat.property->indi_property);
+
+  // The order in which things are set up here is important. Readout
+  // mode has the potential (although not in the QHY268M) to change
+  // gain and chip resolution. Hence, it needs to be set first.
   
-  this->cam_frame_x.setValue(ExposureFlags.subframe.box_left);
-  this->cam_frame_y.setValue(ExposureFlags.subframe.box_bottom);
-  this->cam_frame_width.setValue(ExposureFlags.subframe.box_width());
-  this->cam_frame_height.setValue(ExposureFlags.subframe.box_height());
-  this->dev->local_client->sendNewNumber(this->cam_frame_height.property->indi_property);
-  //std::cerr << "Frame dims set to "
-  //	    << ExposureFlags.subframe.box_left << " x "
-  //	    << ExposureFlags.subframe.box_bottom << " x "
-  //	    << ExposureFlags.subframe.box_width() << " x "
-  //	    << ExposureFlags.subframe.box_height() << '\n';
-
-  //cm.SetCameraMode(ExposureFlags.GetReadoutMode());
-  //cm.SetCameraGain(ExposureFlags.GetGain());
-  //cm.SetOffset(ExposureFlags.GetOffset());
-  //cm.SetUSBTraffic(ExposureFlags.USBTraffic());
-
   if (this->camera_model == CAM_QHY268M) {
     this->cam_readoutmode.setValue(ExposureFlags.GetReadoutMode());
     this->dev->local_client->sendNewNumber(this->cam_readoutmode.property->indi_property);
@@ -259,6 +247,17 @@ CAMERA_INDI::ExposureStart(double exposure_time_seconds,
     this->dev->local_client->sendNewNumber(this->cam_usbtraffic.property->indi_property);
   }
     
+  this->cam_frame_x.setValue(ExposureFlags.subframe.box_left);
+  this->cam_frame_y.setValue(ExposureFlags.subframe.box_bottom);
+  this->cam_frame_width.setValue(ExposureFlags.subframe.box_width());
+  this->cam_frame_height.setValue(ExposureFlags.subframe.box_height());
+  this->dev->local_client->sendNewNumber(this->cam_frame_height.property->indi_property);
+  //std::cerr << "Frame dims set to "
+  //	    << ExposureFlags.subframe.box_left << " x "
+  //	    << ExposureFlags.subframe.box_bottom << " x "
+  //	    << ExposureFlags.subframe.box_width() << " x "
+  //	    << ExposureFlags.subframe.box_height() << '\n';
+
   this->blob_blocker.Setup(); // prep the blocker
   this->cam_exposure_time.setValue(this->user_exp_time); // starts the exposure
   this->dev->local_client->sendNewNumber(this->cam_exposure_time.property->indi_property);
