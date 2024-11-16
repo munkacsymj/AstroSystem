@@ -90,6 +90,7 @@ Hyperbola::Hyperbola(void) {
 void
 Hyperbola::SetC(double ticks_per_blur) {
   C = ticks_per_blur;
+  state_var[HYPER_C] = ticks_per_blur;
 }
 
 Hyperbola::Hyperbola(double best_guess) {

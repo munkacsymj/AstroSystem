@@ -488,6 +488,7 @@ focus(Image *initial_image,
     MAX_SOLUTION = MAX_TRAVEL - (0.01*(MAX_TRAVEL-MIN_TRAVEL));
     //hyperbola_C = 2*system_config.FocalRatio()/pixel_scale;
     hyperbola_C = system_config.FocusSlope(focuser_to_use);
+    //hyperbola_C = 8620.0;
 
     fprintf(stdout, "Pixel scale = %.3lf\n", pixel_scale);
     fprintf(stdout, "Low/High blur thresholds = %.1lf / %.1lf\n",
