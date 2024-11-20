@@ -103,16 +103,14 @@ void
 Hyperbola::reset(void) {
   state_var[HYPER_A]     = 0.5;
   state_var[HYPER_R]     = 100.0;
-  state_var[HYPER_C]     = 36.0;
-  C = 36.0;
+  state_var[HYPER_C]     = this->C;
 }
 
 void 
 Hyperbola::reset(double best_guess) {
   state_var[HYPER_A]     = 0.5;
   state_var[HYPER_R]     = best_guess;
-  state_var[HYPER_C]     = 36.0;
-  C = 36.0;
+  state_var[HYPER_C]     = this->C;
 }
 
 void 
@@ -129,6 +127,8 @@ Hyperbola::Solve(RunData *run_data) {
 
   int loop_count = 0;
   order = (C < 0.0 ? 3 : 2);
+  fprintf(stderr, "Hyperbola::Solve set order to %d because C is %lf\n",
+	  order, C);
   double old_mel = 0.0;
 
   // Initial value of R will be the average tick for all the points
@@ -232,6 +232,8 @@ Hyperbola::Solve(RunData *run_data) {
     }
 #endif
 
+    fprintf(stderr, "Hyper_A = %lf, delta_A = %lf\n",
+	    state_var[HYPER_A], delta_a);
     state_var[HYPER_A]     += delta_a;
     state_var[HYPER_R]     += delta_r;
     if (order > 2) {
@@ -283,14 +285,18 @@ Hyperbola::Solve(RunData *run_data) {
 void test_hyperbola(void) {
   RunData run_data;
 #if 1
-  run_data.add(1182, 14.866);
-  run_data.add(1232, 10.63);
-  run_data.add(1282, 8.246);
-  run_data.add(1332, 8.062);
-  run_data.add(1132, 21.40);
-  run_data.add(1072, 29.73);
-  run_data.add(1372, 10.63);
-  run_data.add(1431, 15.81);
+  run_data.add(309520, 12.379);
+  run_data.add(323395, 12.288);
+  run_data.add(337712, 10.356);
+  run_data.add(351808, 9.207);
+  run_data.add(365904, 8.970);
+  run_data.add(380000, 8.067);
+  run_data.add(394096, 7.425);
+  run_data.add(408192, 8.559);
+  run_data.add(422288, 8.733);
+  run_data.add(436384, 11.421);
+  run_data.add(450480, 12.170);
+  run_data.add(457209, 12.497);
 #else
   // 7-5-2015 data
   run_data.add(1888, 2.904);
@@ -354,7 +360,7 @@ void test_hyperbola(void) {
 #endif
   Hyperbola h;
   h.reset();
-  h.SetC(7.4);
+  h.SetC(8330.0);
   int x = h.Solve(&run_data);
   fprintf(stderr, "nlls_hyperbola returned %d\n", x);
   fprintf(stderr, "A = %lf\n", h.state_var[HYPER_A]);

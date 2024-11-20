@@ -87,14 +87,12 @@ void PrintMeasurements(void);
 
 #if 0				// might be needed in the future
 static double f_number(void) {
-  static SystemConfig config;
-  return config.FocalRatio();
+  return system_config.FocalRatio();
 }
 #endif
 
 static double focus_slope(void) {
-  static SystemConfig config;
-  return config.FocusSlope(FOCUSER_FINE); // based on bin 3x3??
+  return system_config.FocusSlope(FOCUSER_FINE); // based on bin 3x3??
 }
 
 //static double M = 0.0135;	// asymptotic slope (75)
@@ -477,7 +475,8 @@ CompositeModel::GetSumSqResiduals(void) const {
 bool StateVectorIsCredible(const FocusModelState &state) {
   const double abs_R = fabs(state.R);
   const double abs_AR = fabs(state.AR);
-  bool credibility = (state.C > 0 and state.C < 420000 and
+  bool credibility = (state.C > system_config.FocuserMin(FOCUSER_FINE) and
+		      state.C < system_config.FocuserMax(FOCUSER_FINE) and
 		      //state.A > 0.4 and // seemed to arbitrarily exclude good solutions
 		      state.A < 2.5 and
 		      abs_R < (400000/3600.0) and
@@ -1058,8 +1057,7 @@ RunningFocus::AddPoint(double gaussian, double focuser, JULIAN time_tag) {
 //#ifdef CONTINUOUS_DITHER
 
 static int dither_size(void) {
-  static SystemConfig config;
-  if (config.FineFocuserName() == "ESATTO") {
+  if (system_config.FineFocuserName() == "ESATTO") {
     return 10000.0;
   } else {
     return 50.0;		// JMI focuser

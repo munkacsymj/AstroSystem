@@ -926,7 +926,11 @@ void FetchAndProcessExposures(double *current_estimate) {
   // fitting.
   Hyperbola h(*current_estimate);
   h.reset(*current_estimate);
-  h.SetC(hyperbola_C);
+  if (/*extern*/ fixed_slope) {
+    h.SetC(hyperbola_C);
+  } else {
+    h.SetC(-1);
+  }
   (void) h.Solve(&run_data);
   double next_guess = h.state_var[HYPER_R];
   if (h.NoSolution()) {

@@ -31,8 +31,8 @@ focus: $(OBJECTS)
 parab_test: parab_test.o $(PARAB_O)
 	$(CXXLD) -g parab_test.o $(PARAB_O) $(LIB_DIR) $(ALL_LIBS) -o parab_test
 
-test_hyperbola: test_hyperbola.o hyperbola.o
-	$(CXXLD) -g test_hyperbola.o $(PARAB_O) $(LIB_DIR) $(ALL_LIBS) -o test_hyperbola
+test_hyperbola: test_hyperbola.o
+	$(CXXLD) -g test_hyperbola.o $(LIB_DIR) $(ALL_LIBS) -o test_hyperbola
 
 test_focus: test_focus.o
 	$(CXXLD) -g test_focus.o $(LIB_DIR) $(ALL_LIBS) -o test_focus
