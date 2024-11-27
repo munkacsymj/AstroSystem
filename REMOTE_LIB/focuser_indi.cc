@@ -92,6 +92,12 @@ FOCUSER_INDI::DoFocus(long msec, // time on some focusers, ticks on others
     target_point = starting_point+msec;
   }
 
+  // This is workaround for a bug in the INDI driver for ESATTO. If
+  // the move wouldn't do anything, then don't issue the move command.
+  if (abs(target_point - starting_point) < 2) {
+    return starting_point;
+  }
+
   std::cerr << "Focus = " << CurrentFocus()
 	    << "State pre-assignment is "
 	    << this->focuser_absolute.property->indi_property.getStateAsString() << std::endl;
